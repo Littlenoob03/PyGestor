@@ -157,7 +157,7 @@ def main(page: ft.Page):
             expand=True,
             bgcolor="#F7F8FA",
         ),
-    ], expand=True, spacing=0)
+    ], expand=True, spacing=0, vertical_alignment=ft.CrossAxisAlignment.START)
 
     def on_login(is_guest: bool):
         page.is_guest = is_guest
