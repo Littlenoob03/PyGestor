@@ -9,11 +9,11 @@ COLORS = {
     "primary":        "#2563EB",
     "primary_dark":   "#1D4ED8",
     "sidebar_bg":     "#1E3A5F",
-    "bg":             "#F8FAFC",
+    "bg":             "#F1F5F9",
     "surface":        "#FFFFFF",
     "border":         "#E2E8F0",
-    "text_primary":   "#1E293B",
-    "text_secondary": "#64748B",
+    "text_primary":   "#0F172A",
+    "text_secondary": "#475569",
     "text_muted":     "#94A3B8",
     "success":        "#22C55E",
     "success_bg":     "#DCFCE7",
@@ -24,12 +24,26 @@ COLORS = {
     "warning_bg":     "#FEF9C3",
     "warning_text":   "#854D0E",
     "info":           "#3B82F6",
-    # Gradientes simulados (color principal de cada tarjeta stat)
     "stat1":  "#6366F1",
     "stat2":  "#10B981",
     "stat3":  "#F43F5E",
-    "stat4":  "#06B6D4",
+    "stat4":  "#0EA5E9",
 }
+
+# Pares de gradientes para las tarjetas KPI
+GRADIENTS = [
+    ("#6366F1", "#8B5CF6"),   # indigo → violet
+    ("#10B981", "#059669"),   # emerald → green
+    ("#F43F5E", "#FB923C"),   # rose → orange
+    ("#0EA5E9", "#06B6D4"),   # sky → cyan
+]
+
+# Colores para gráficos
+CHART_COLORS = [
+    "#6366F1", "#10B981", "#F59E0B",
+    "#EF4444", "#14B8A6", "#A855F7",
+    "#3B82F6", "#F97316",
+]
 
 CAT_LABELS = {
     "oficina":    ("🖊️", "Oficina"),
@@ -41,65 +55,104 @@ CAT_LABELS = {
     "otros":      ("📦", "Otros"),
 }
 
-MESES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
+MESES = ["Ene","Feb","Mar","Abr","May","Jun",
+         "Jul","Ago","Sep","Oct","Nov","Dic"]
+
 
 # ── Helpers de componentes ─────────────────────────────────
 
 def card(content, padding=20, radius=16, expand=False, width=None) -> ft.Container:
-    """Tarjeta blanca con sombra suave."""
+    """Tarjeta blanca con sombra suave, sin borde visible."""
     return ft.Container(
         content=content,
         bgcolor=COLORS["surface"],
         border_radius=radius,
         padding=padding,
-        border=ft.border.all(1, COLORS["border"]),
         shadow=ft.BoxShadow(
-            spread_radius=0, blur_radius=8,
-            color=ft.Colors.with_opacity(0.06, "black"),
-            offset=ft.Offset(0, 2),
+            spread_radius=0,
+            blur_radius=24,
+            color=ft.Colors.with_opacity(0.07, "black"),
+            offset=ft.Offset(0, 4),
         ),
         expand=expand,
         width=width,
     )
 
-def stat_card(title, value, subtitle, color, icon):
+
+def gradient_stat_card(title: str, value: str, subtitle: str,
+                       grad_a: str, grad_b: str,
+                       icon=None) -> ft.Container:
+    """Tarjeta KPI con gradiente diagonal y sombra de color."""
     return ft.Container(
         content=ft.Column([
-            ft.Text(title, size=12, color=ft.Colors.WHITE, weight=ft.FontWeight.W_500),
-            ft.Text(value, size=24, color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD),
-            ft.Text(subtitle, size=11, color=ft.Colors.with_opacity(0.7, "white")),
-        ], spacing=4),
-        bgcolor=color,
+            ft.Row([
+                ft.Column([
+                    ft.Text(title, size=12,
+                            color=ft.Colors.with_opacity(0.85, "white"),
+                            weight=ft.FontWeight.W_500),
+                    ft.Text(value, size=26,
+                            color=ft.Colors.WHITE,
+                            weight=ft.FontWeight.BOLD),
+                    ft.Text(subtitle, size=11,
+                            color=ft.Colors.with_opacity(0.7, "white")),
+                ], spacing=5, expand=True),
+                ft.Container(
+                    content=ft.Icon(
+                        icon or ft.Icons.SHOW_CHART,
+                        color=ft.Colors.with_opacity(0.35, "white"),
+                        size=32,
+                    ),
+                    width=52, height=52,
+                    bgcolor=ft.Colors.with_opacity(0.18, "white"),
+                    border_radius=14,
+                    alignment=ft.Alignment(0, 0),
+                ),
+            ], spacing=12),
+        ], spacing=0),
+        gradient=ft.LinearGradient(
+            begin=ft.Alignment(-1, -1),
+            end=ft.Alignment(1, 1),
+            colors=[grad_a, grad_b],
+        ),
         padding=ft.Padding.all(20),
-        border_radius=ft.BorderRadius.all(12),
-        # Usa el objeto Alignment con mayúscula
-        alignment=ft.Alignment(0, 0) 
+        border_radius=ft.BorderRadius.all(16),
+        expand=True,
+        shadow=ft.BoxShadow(
+            spread_radius=0,
+            blur_radius=18,
+            color=ft.Colors.with_opacity(0.28, grad_a),
+            offset=ft.Offset(0, 6),
+        ),
     )
 
+
+def stat_card(title, value, subtitle, color, icon):
+    """Compatibilidad con código existente – delega a gradient_stat_card."""
+    return gradient_stat_card(title, value, subtitle, color, color)
+
+
 def btn_primary(text, on_click=None, icon=None, width=None):
-    # En lugar de usar text e icon como propiedades, creamos el contenido interno
-    # Esto evita el conflicto de "icon must be specified together with content"
-    inner_content = ft.Row(
+    inner = ft.Row(
         [
-            ft.Icon(icon) if icon else ft.Container(),
-            ft.Text(str(text), weight=ft.FontWeight.BOLD)
+            ft.Icon(icon, size=16, color="white") if icon else ft.Container(),
+            ft.Text(str(text), weight=ft.FontWeight.BOLD, color="white"),
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         spacing=8,
-        tight=True
+        tight=True,
     )
-
-    btn = ft.ElevatedButton(
-        content=inner_content, # Usamos content directamente
+    return ft.ElevatedButton(
+        content=inner,
         on_click=on_click,
         width=width,
         style=ft.ButtonStyle(
             color=ft.Colors.WHITE,
-            bgcolor=ft.Colors.BLUE,
-            shape=ft.RoundedRectangleBorder(radius=8),
+            bgcolor=COLORS["primary"],
+            shape=ft.RoundedRectangleBorder(radius=10),
+            elevation=0,
         ),
     )
-    return btn
+
 
 def btn_danger(text: str, on_click=None) -> ft.OutlinedButton:
     return ft.OutlinedButton(
@@ -112,18 +165,19 @@ def btn_danger(text: str, on_click=None) -> ft.OutlinedButton:
         ),
     )
 
+
 def btn_secondary(text, on_click=None, icon=None, width=None):
-    btn = ft.OutlinedButton() # Constructor vacío
-    btn.text = str(text)      # Asignación manual
+    btn = ft.OutlinedButton()
+    btn.text = str(text)
     btn.on_click = on_click
     btn.icon = icon
     btn.width = width
-    
     btn.style = ft.ButtonStyle(
         shape=ft.RoundedRectangleBorder(radius=8),
-        color=ft.Colors.BLUE,
+        color=COLORS["primary"],
     )
     return btn
+
 
 def badge(text: str, kind: str = "default") -> ft.Container:
     """kind: 'success' | 'danger' | 'warning' | 'info' | 'default'"""
@@ -137,18 +191,25 @@ def badge(text: str, kind: str = "default") -> ft.Container:
     bg, fg = palettes.get(kind, palettes["default"])
     return ft.Container(
         content=ft.Text(text, size=11, weight=ft.FontWeight.W_600, color=fg),
-        bgcolor=bg, border_radius=8,
+        bgcolor=bg,
+        border_radius=20,
         padding=ft.Padding.symmetric(horizontal=10, vertical=4),
     )
 
+
 def section_header(title: str, subtitle: str = "") -> ft.Column:
-    children = [ft.Text(title, size=22, weight=ft.FontWeight.BOLD, color=COLORS["text_primary"])]
+    children = [
+        ft.Text(title, size=24, weight=ft.FontWeight.BOLD,
+                color=COLORS["text_primary"]),
+    ]
     if subtitle:
         children.append(ft.Text(subtitle, size=13, color=COLORS["text_secondary"]))
     return ft.Column(children, spacing=2)
 
+
 def divider() -> ft.Divider:
     return ft.Divider(color=COLORS["border"], height=1)
+
 
 def text_field(label: str, hint: str = "", value: str = "",
                keyboard_type=ft.KeyboardType.TEXT,
@@ -167,24 +228,20 @@ def text_field(label: str, hint: str = "", value: str = "",
         content_padding=ft.Padding.symmetric(horizontal=16, vertical=14),
     )
 
+
 def dropdown(label, options, value=None, on_change=None):
-    # 1. Creamos el control básico con solo lo indispensable
     dd = ft.Dropdown(
         label=label,
         value=value,
-        # Importante: Las opciones deben ser objetos ft.dropdown.Option
         options=[ft.dropdown.Option(key=str(k), text=str(t)) for k, t in options],
-        # Usamos Mayúsculas para evitar los DeprecationWarnings
         content_padding=ft.Padding.symmetric(horizontal=16, vertical=4),
-        border_radius=ft.BorderRadius.all(8),
+        border_radius=ft.BorderRadius.all(12),
         focused_border_color=ft.Colors.BLUE,
     )
-    
-    # 2. Asignamos el evento después de la creación para evitar el TypeError en el __init__
     if on_change is not None:
         dd.on_change = on_change
-        
     return dd
+
 
 def snack(page: ft.Page, msg: str, ok: bool = True):
     page.snack_bar = ft.SnackBar(
@@ -194,6 +251,7 @@ def snack(page: ft.Page, msg: str, ok: bool = True):
     )
     page.snack_bar.open = True
     page.update()
+
 
 def page_wrapper(content) -> ft.Container:
     """Envuelve el contenido de una vista con scroll y padding."""

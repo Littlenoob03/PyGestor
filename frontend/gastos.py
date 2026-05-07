@@ -1,5 +1,5 @@
 import flet as ft
-from datetime import date
+from datetime import date, datetime
 from backend.database import Database
 from backend.logic import fmt, gastos_por_categoria
 from frontend.styles import (
@@ -8,7 +8,7 @@ from frontend.styles import (
 )
 
 def GastosView(db: Database, navigate) -> ft.Container:
-    year = 2025
+    year = datetime.now().year
     editing_id = {"val": None}
 
     g_desc  = text_field("Descripción", "Descripción del gasto")

@@ -1,5 +1,5 @@
 import flet as ft
-from datetime import date
+from datetime import date, datetime
 from backend.database import Database
 from backend.logic import fmt
 from frontend.styles import (
@@ -8,7 +8,7 @@ from frontend.styles import (
 )
 
 def FacturasView(db: Database, navigate) -> ft.Container:
-    year = 2025
+    year = datetime.now().year
     filtro_estado = {"val": "all"}
     editing_id = {"val": None}
 

@@ -1,4 +1,5 @@
 import flet as ft
+from datetime import datetime
 from backend.database import Database
 from backend.logic import fmt, calcular_trimestre, calcular_cuota_autonomos
 from frontend.styles import COLORS, card, section_header, page_wrapper, divider
@@ -7,7 +8,7 @@ T_NAMES    = ["T1 (Ene–Mar)", "T2 (Abr–Jun)", "T3 (Jul–Sep)", "T4 (Oct–D
 T_DEADLINE = ["20 Abril", "20 Julio", "20 Octubre", "30 Enero"]
 
 def FiscalView(db: Database, navigate) -> ft.Container:
-    year = 2025
+    year = datetime.now().year
     facturas = db.facturas_by_year(year)
     gastos   = db.gastos_by_year(year)
 
