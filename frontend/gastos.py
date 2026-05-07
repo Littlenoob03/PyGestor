@@ -127,6 +127,9 @@ def GastosView(db: Database, navigate) -> ft.Container:
 
                 def make_actions(gid):
                     def on_edit(e, gid=gid):
+                        if getattr(e.page, "is_guest", False):
+                            snack(e.page, "Modo Invitado: Inicia sesión para editar.", ok=False)
+                            return
                         ga = db.get_gasto(gid)
                         editing_id["val"] = gid
                         g_desc.value      = ga.descripcion
@@ -142,6 +145,9 @@ def GastosView(db: Database, navigate) -> ft.Container:
                         e.page.update()
 
                     def on_delete(e, gid=gid):
+                        if getattr(e.page, "is_guest", False):
+                            snack(e.page, "Modo Invitado: Inicia sesión para borrar.", ok=False)
+                            return
                         def confirm(ev):
                             db.delete_gasto(gid)
                             ev.page.dialog.open = False
@@ -232,6 +238,9 @@ def GastosView(db: Database, navigate) -> ft.Container:
     )
 
     def nuevo_gasto(e):
+        if getattr(e.page, "is_guest", False):
+            snack(e.page, "Modo Invitado: Inicia sesión para añadir datos.", ok=False)
+            return
         editing_id["val"] = None
         g_desc.value  = ""
         g_fecha.value = str(date.today())

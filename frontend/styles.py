@@ -244,12 +244,13 @@ def dropdown(label, options, value=None, on_change=None):
 
 
 def snack(page: ft.Page, msg: str, ok: bool = True):
-    page.snack_bar = ft.SnackBar(
+    sb = ft.SnackBar(
         content=ft.Text(msg, color="white"),
         bgcolor=COLORS["success"] if ok else COLORS["danger"],
         duration=3000,
+        open=True,
     )
-    page.snack_bar.open = True
+    page.overlay.append(sb)
     page.update()
 
 

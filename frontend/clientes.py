@@ -88,6 +88,9 @@ def ClientesView(db: Database, navigate) -> ft.Container:
 
             def make_card(cid, initials=initials, color=color, c=c, facts=facts, total=total):
                 def on_edit(e):
+                    if getattr(e.page, "is_guest", False):
+                        snack(e.page, "Modo Invitado: Inicia sesión para editar.", ok=False)
+                        return
                     editing_id["val"] = cid
                     ca = db.get_cliente(cid)
                     c_nombre.value = ca.nombre
@@ -101,6 +104,9 @@ def ClientesView(db: Database, navigate) -> ft.Container:
                     e.page.update()
 
                 def on_delete(e):
+                    if getattr(e.page, "is_guest", False):
+                        snack(e.page, "Modo Invitado: Inicia sesión para borrar.", ok=False)
+                        return
                     def confirm(ev):
                         db.delete_cliente(cid)
                         ev.page.dialog.open = False
@@ -168,6 +174,9 @@ def ClientesView(db: Database, navigate) -> ft.Container:
     render_grid()
 
     def nuevo_cliente(e):
+        if getattr(e.page, "is_guest", False):
+            snack(e.page, "Modo Invitado: Inicia sesión para añadir datos.", ok=False)
+            return
         editing_id["val"] = None
         c_nombre.value = ""
         c_nif.value    = ""

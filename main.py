@@ -5,10 +5,11 @@ from frontend.gastos import GastosView
 from frontend.clientes import ClientesView
 from frontend.fiscal import FiscalView
 from frontend.informes import InformesView
+from frontend.login import LoginView
 from backend.database import Database
 
 def main(page: ft.Page):
-    page.title = "GestorPro - Autónomos"
+    page.title = "PyGestor - Autónomos"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 0
     page.spacing = 0
@@ -104,7 +105,7 @@ def main(page: ft.Page):
                         alignment=ft.Alignment(0, 0),
                     ),
                     ft.Column([
-                        ft.Text("GestorPro", size=16, weight=ft.FontWeight.BOLD, color="white"),
+                        ft.Text("PyGestor", size=16, weight=ft.FontWeight.BOLD, color="white"),
                         ft.Text("Autónomos", size=11, color="#A5B4FC"),
                     ], spacing=0),
                 ], spacing=12),
@@ -142,27 +143,46 @@ def main(page: ft.Page):
                     ft.Column([
                         ft.Text("Autónomo", size=13, weight=ft.FontWeight.W_500, color="white"),
                         ft.Text("Pro Plan", size=11, color="#A5B4FC"),
-                    ], spacing=0),
-                ], spacing=10),
-                padding=ft.Padding.symmetric(horizontal=16, vertical=16),
+                    ], spacing=0, expand=True),
+                    ft.PopupMenuButton(
+                        icon=ft.Icons.MORE_VERT,
+                        icon_color=ft.Colors.with_opacity(0.7, "white"),
+                        items=[
+                            ft.PopupMenuItem(content=ft.Text("Mi Perfil"), icon=ft.Icons.PERSON_OUTLINE),
+                            ft.PopupMenuItem(content=ft.Text("Cerrar Sesión"), icon=ft.Icons.LOGOUT, on_click=lambda _: logout()),
+                        ]
+                    ),
+                ], spacing=10, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                padding=ft.Padding.symmetric(horizontal=12, vertical=12),
             ),
         ], spacing=0, expand=True),
     )
 
     # ── Layout principal ───────────────────────────────────
-    page.add(
-        ft.Row([
-            sidebar,
-            ft.VerticalDivider(width=1, color="#E5E7EB"),
-            ft.Container(
-                content=content_area,
-                expand=True,
-                bgcolor="#F7F8FA",
-            ),
-        ], expand=True, spacing=0)
-    )
+    main_layout = ft.Row([
+        sidebar,
+        ft.VerticalDivider(width=1, color="#E5E7EB"),
+        ft.Container(
+            content=content_area,
+            expand=True,
+            bgcolor="#F7F8FA",
+        ),
+    ], expand=True, spacing=0)
 
-    navigate("dashboard")
+    def on_login(is_guest: bool):
+        page.is_guest = is_guest
+        page.controls.clear()
+        page.add(main_layout)
+        navigate("dashboard")
+
+    def logout():
+        page.is_guest = False
+        page.controls.clear()
+        page.add(LoginView(on_login))
+        page.update()
+
+    # Inicializar con Login
+    page.add(LoginView(on_login))
 
 
 if __name__ == "__main__":

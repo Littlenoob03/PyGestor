@@ -168,6 +168,9 @@ def FacturasView(db: Database, navigate) -> ft.Container:
 
                 def make_actions(fid):
                     def on_edit(e, fid=fid):
+                        if getattr(e.page, "is_guest", False):
+                            snack(e.page, "Modo Invitado: Inicia sesión para editar.", ok=False)
+                            return
                         fa = db.get_factura(fid)
                         editing_id["val"] = fid
                         f_numero.value   = fa.numero
@@ -183,6 +186,9 @@ def FacturasView(db: Database, navigate) -> ft.Container:
                         open_dlg(e.page)
 
                     def on_toggle(e, fid=fid):
+                        if getattr(e.page, "is_guest", False):
+                            snack(e.page, "Modo Invitado: Inicia sesión para modificar.", ok=False)
+                            return
                         fa = db.get_factura(fid)
                         new_estado = "pagado" if fa.estado == "pendiente" else "pendiente"
                         db.update_factura(fid, estado=new_estado)
@@ -190,6 +196,9 @@ def FacturasView(db: Database, navigate) -> ft.Container:
                         refresh(e.page)
 
                     def on_delete(e, fid=fid):
+                        if getattr(e.page, "is_guest", False):
+                            snack(e.page, "Modo Invitado: Inicia sesión para borrar.", ok=False)
+                            return
                         def confirm(ev):
                             db.delete_factura(fid)
                             ev.page.dialog.open = False
@@ -270,6 +279,9 @@ def FacturasView(db: Database, navigate) -> ft.Container:
     ])
 
     def nueva_factura(e):
+        if getattr(e.page, "is_guest", False):
+            snack(e.page, "Modo Invitado: Inicia sesión para añadir datos.", ok=False)
+            return
         editing_id["val"] = None
         f_numero.value  = f"FAC-{year}-{str(len(db.facturas)+1).zfill(3)}"
         f_concepto.value = ""
