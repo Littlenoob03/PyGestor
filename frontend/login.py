@@ -38,23 +38,11 @@ def LoginView(on_login) -> ft.Container:
     def handle_guest(e):
         on_login(is_guest=True)
 
-    # ── Logo Placeholder ───────────────────────────────────────────────────
+    # ── Logo ───────────────────────────────────────────────────
     logo = ft.Container(
         content=ft.Column([
-            ft.Container(
-                content=ft.Icon(ft.Icons.AUTO_GRAPH_ROUNDED, size=48, color="white"),
-                width=80, height=80,
-                bgcolor=COLORS["primary"],
-                border_radius=20,
-                alignment=ft.Alignment(0, 0),
-                shadow=ft.BoxShadow(
-                    spread_radius=0, blur_radius=15,
-                    color=ft.Colors.with_opacity(0.4, COLORS["primary"]),
-                    offset=ft.Offset(0, 8),
-                ),
-            ),
-            ft.Container(height=8),
-            ft.Text("PyGestor", size=28, weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
+            ft.Image(src="Logo.png", width=120, height=120, fit=ft.BoxFit.CONTAIN),
+            ft.Container(height=16),
             ft.Text("Inicia sesión para gestionar tu negocio", size=14, color=COLORS["text_secondary"]),
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=0),
         margin=ft.Margin(bottom=32, top=0, left=0, right=0)

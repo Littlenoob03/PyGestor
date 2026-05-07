@@ -19,6 +19,7 @@ def main(page: ft.Page):
     page.window_height = 800
     page.window_min_width = 1100
     page.window_min_height = 700
+    page.window_icon = "Logo.png"
 
     page.fonts = {
         "Inter": "https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2"
@@ -96,20 +97,9 @@ def main(page: ft.Page):
         content=ft.Column([
             # Logo
             ft.Container(
-                content=ft.Row([
-                    ft.Container(
-                        content=ft.Text("G", size=20, weight=ft.FontWeight.BOLD, color="white"),
-                        width=42, height=42,
-                        bgcolor=ft.Colors.with_opacity(0.22, "white"),
-                        border_radius=12,
-                        alignment=ft.Alignment(0, 0),
-                    ),
-                    ft.Column([
-                        ft.Text("PyGestor", size=16, weight=ft.FontWeight.BOLD, color="white"),
-                        ft.Text("Autónomos", size=11, color="#A5B4FC"),
-                    ], spacing=0),
-                ], spacing=12),
-                padding=ft.Padding.symmetric(horizontal=20, vertical=24),
+                content=ft.Image(src="banner.jpg", width=180, fit=ft.BoxFit.CONTAIN),
+                padding=ft.Padding.symmetric(horizontal=20, vertical=20),
+                alignment=ft.Alignment(-1, 0),
             ),
             ft.Divider(color=ft.Colors.with_opacity(0.15, "white"), height=1),
             ft.Container(height=8),
@@ -186,4 +176,4 @@ def main(page: ft.Page):
 
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    ft.app(target=main, assets_dir="assets")

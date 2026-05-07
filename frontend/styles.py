@@ -6,8 +6,8 @@ import flet as ft
 
 # ── Colores ────────────────────────────────────────────────
 COLORS = {
-    "primary":        "#4F46E5",
-    "primary_dark":   "#4338CA",
+    "primary":        "#1E1977",
+    "primary_dark":   "#131054",
     "sidebar_bg":     "#0F1729",
     "bg":             "#F7F8FA",
     "surface":        "#FFFFFF",
@@ -23,7 +23,7 @@ COLORS = {
     "danger_text":    "#991B1B",
     "warning_bg":     "#FFFBEB",
     "warning_text":   "#92400E",
-    "info":           "#4F46E5",
+    "info":           "#1E1977",
     "stat1":  "#3B82F6",
     "stat2":  "#10B981",
     "stat3":  "#8B5CF6",
