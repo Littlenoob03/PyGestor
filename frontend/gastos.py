@@ -107,7 +107,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
                 th("BASE", 90), th("IVA", 80), th("TOTAL", 90),
                 th("DEDUCIBLE", 90), th("", 80),
             ], spacing=8),
-            bgcolor="#F8FAFC",
+            bgcolor="#F7F8FA",
             padding=ft.Padding.symmetric(horizontal=16, vertical=10),
             border_radius=ft.BorderRadius.only(top_left=12, top_right=12),
         ))

@@ -31,7 +31,7 @@ def FiscalView(db: Database, navigate) -> ft.Container:
                     ft.Container(
                         content=ft.Text(f"Plazo: {T_DEADLINE[t-1]}", size=11,
                                         color=COLORS["text_muted"]),
-                        bgcolor="#F1F5F9", border_radius=8,
+                        bgcolor="#F7F8FA", border_radius=8,
                         padding=ft.Padding.symmetric(horizontal=10, vertical=4),
                     ),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
@@ -73,7 +73,7 @@ def FiscalView(db: Database, navigate) -> ft.Container:
                     ft.Container(
                         content=ft.Text(f"Plazo: {T_DEADLINE[t-1]}", size=11,
                                         color=COLORS["text_muted"]),
-                        bgcolor="#F1F5F9", border_radius=8,
+                        bgcolor="#F7F8FA", border_radius=8,
                         padding=ft.Padding.symmetric(horizontal=10, vertical=4),
                     ),
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
@@ -128,7 +128,7 @@ def FiscalView(db: Database, navigate) -> ft.Container:
                         ft.Text(fmt(rn_mensual) + "/mes", size=18,
                                 weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
                     ], spacing=4),
-                    bgcolor="#F8FAFC", border_radius=12, padding=16, expand=True,
+                    bgcolor="#F7F8FA", border_radius=12, padding=16, expand=True,
                 ),
                 ft.Container(
                     content=ft.Column([
@@ -136,7 +136,7 @@ def FiscalView(db: Database, navigate) -> ft.Container:
                         ft.Text(tramo_desc, size=14,
                                 weight=ft.FontWeight.BOLD, color=COLORS["primary"]),
                     ], spacing=4),
-                    bgcolor="#F8FAFC", border_radius=12, padding=16, expand=True,
+                    bgcolor="#F7F8FA", border_radius=12, padding=16, expand=True,
                 ),
                 ft.Container(
                     content=ft.Column([

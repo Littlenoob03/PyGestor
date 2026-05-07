@@ -11,23 +11,25 @@ import matplotlib.patches as mpatches
 from matplotlib.ticker import FuncFormatter
 
 # ── Paleta coherente con el diseño de GestorPro ───────────
-C_INDIGO  = "#6366F1"
-C_EMERALD = "#10B981"
-C_ROSE    = "#F43F5E"
-C_SKY     = "#0EA5E9"
-C_AMBER   = "#F59E0B"
-C_PURPLE  = "#A855F7"
-C_TEAL    = "#14B8A6"
-C_ORANGE  = "#F97316"
+# Semántica: azul=ingresos, violeta=gastos, esmeralda=beneficio, ámbar=fiscal
+C_INDIGO  = "#3B82F6"   # azul     → Ingresos
+C_EMERALD = "#10B981"   # esmeralda
+C_ROSE    = "#8B5CF6"   # violeta  → Gastos
+C_SKY     = "#06B6D4"   # cyan
+C_AMBER   = "#F59E0B"   # ámbar
+C_PURPLE  = "#EC4899"   # rosa
+C_TEAL    = "#14B8A6"   # teal
+C_ORANGE  = "#F97316"   # naranja
+C_RED     = "#DC2626"   # rojo profundo
 
 CHART_PALETTE = [C_INDIGO, C_EMERALD, C_AMBER,
-                 C_ROSE,   C_TEAL,    C_PURPLE,
+                 C_RED,    C_TEAL,    C_ROSE,
                  C_SKY,    C_ORANGE]
 
 BG_COLOR  = "#FFFFFF"
-GRID_CLR  = "#F1F5F9"
-TEXT_CLR  = "#475569"
-TEXT_DARK = "#0F172A"
+GRID_CLR  = "#F3F4F6"
+TEXT_CLR  = "#6B7280"
+TEXT_DARK = "#111827"
 
 plt.rcParams.update({
     "font.family":      "DejaVu Sans",

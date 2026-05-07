@@ -6,43 +6,43 @@ import flet as ft
 
 # ── Colores ────────────────────────────────────────────────
 COLORS = {
-    "primary":        "#2563EB",
-    "primary_dark":   "#1D4ED8",
-    "sidebar_bg":     "#1E3A5F",
-    "bg":             "#F1F5F9",
+    "primary":        "#4F46E5",
+    "primary_dark":   "#4338CA",
+    "sidebar_bg":     "#0F1729",
+    "bg":             "#F7F8FA",
     "surface":        "#FFFFFF",
-    "border":         "#E2E8F0",
-    "text_primary":   "#0F172A",
-    "text_secondary": "#475569",
-    "text_muted":     "#94A3B8",
-    "success":        "#22C55E",
-    "success_bg":     "#DCFCE7",
-    "success_text":   "#166534",
-    "danger":         "#EF4444",
+    "border":         "#E5E7EB",
+    "text_primary":   "#111827",
+    "text_secondary": "#6B7280",
+    "text_muted":     "#9CA3AF",
+    "success":        "#059669",
+    "success_bg":     "#D1FAE5",
+    "success_text":   "#065F46",
+    "danger":         "#DC2626",
     "danger_bg":      "#FEE2E2",
     "danger_text":    "#991B1B",
-    "warning_bg":     "#FEF9C3",
-    "warning_text":   "#854D0E",
-    "info":           "#3B82F6",
-    "stat1":  "#6366F1",
+    "warning_bg":     "#FFFBEB",
+    "warning_text":   "#92400E",
+    "info":           "#4F46E5",
+    "stat1":  "#3B82F6",
     "stat2":  "#10B981",
-    "stat3":  "#F43F5E",
-    "stat4":  "#0EA5E9",
+    "stat3":  "#8B5CF6",
+    "stat4":  "#F59E0B",
 }
 
-# Pares de gradientes para las tarjetas KPI
+# Pares de gradientes semánticos para las tarjetas KPI
 GRADIENTS = [
-    ("#6366F1", "#8B5CF6"),   # indigo → violet
-    ("#10B981", "#059669"),   # emerald → green
-    ("#F43F5E", "#FB923C"),   # rose → orange
-    ("#0EA5E9", "#06B6D4"),   # sky → cyan
+    ("#3B82F6", "#2563EB"),
+    ("#8B5CF6", "#6D28D9"),
+    ("#10B981", "#059669"),
+    ("#F59E0B", "#D97706"),
 ]
 
-# Colores para gráficos
+# Paleta para gráficos (PieChart, BarChart, etc.)
 CHART_COLORS = [
-    "#6366F1", "#10B981", "#F59E0B",
-    "#EF4444", "#14B8A6", "#A855F7",
-    "#3B82F6", "#F97316",
+    "#3B82F6", "#10B981", "#F59E0B",
+    "#DC2626", "#14B8A6", "#8B5CF6",
+    "#06B6D4", "#F97316",
 ]
 
 CAT_LABELS = {
@@ -186,7 +186,7 @@ def badge(text: str, kind: str = "default") -> ft.Container:
         "danger":  (COLORS["danger_bg"],   COLORS["danger_text"]),
         "warning": (COLORS["warning_bg"],  COLORS["warning_text"]),
         "info":    ("#DBEAFE",             "#1E40AF"),
-        "default": ("#F1F5F9",             COLORS["text_secondary"]),
+        "default": ("#F7F8FA",             COLORS["text_secondary"]),
     }
     bg, fg = palettes.get(kind, palettes["default"])
     return ft.Container(

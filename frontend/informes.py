@@ -116,7 +116,7 @@ def _kpi_mini(label: str, value: str, color: str) -> ft.Container:
             ft.Text(label, size=11, color="#64748B"),
             ft.Text(value, size=16, weight=ft.FontWeight.BOLD, color=color),
         ], spacing=4, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-        bgcolor="#F8FAFC",
+        bgcolor="#F7F8FA",
         border_radius=12,
         padding=16,
         expand=True,

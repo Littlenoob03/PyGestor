@@ -12,7 +12,7 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 0
     page.spacing = 0
-    page.bgcolor = "#F1F5F9"
+    page.bgcolor = "#F7F8FA"
 
     page.window_width = 1280
     page.window_height = 800
@@ -81,7 +81,7 @@ def main(page: ft.Page):
                 btn.bgcolor = ft.Colors.with_opacity(0.18, "white")
                 # Resaltar icono y texto en activo
                 row = btn.content
-                row.controls[0].color = "#93C5FD"   # icono azul claro
+                row.controls[0].color = "#A5B4FC"   # icono indigo claro
             else:
                 btn.bgcolor = ft.Colors.with_opacity(0, "white")
                 row = btn.content
@@ -91,7 +91,7 @@ def main(page: ft.Page):
     # ── Sidebar ────────────────────────────────────────────
     sidebar = ft.Container(
         width=235,
-        bgcolor="#1E3A5F",
+        bgcolor="#0F1729",
         content=ft.Column([
             # Logo
             ft.Container(
@@ -105,7 +105,7 @@ def main(page: ft.Page):
                     ),
                     ft.Column([
                         ft.Text("GestorPro", size=16, weight=ft.FontWeight.BOLD, color="white"),
-                        ft.Text("Autónomos", size=11, color="#93C5FD"),
+                        ft.Text("Autónomos", size=11, color="#A5B4FC"),
                     ], spacing=0),
                 ], spacing=12),
                 padding=ft.Padding.symmetric(horizontal=20, vertical=24),
@@ -141,7 +141,7 @@ def main(page: ft.Page):
                     ),
                     ft.Column([
                         ft.Text("Autónomo", size=13, weight=ft.FontWeight.W_500, color="white"),
-                        ft.Text("Pro Plan", size=11, color="#93C5FD"),
+                        ft.Text("Pro Plan", size=11, color="#A5B4FC"),
                     ], spacing=0),
                 ], spacing=10),
                 padding=ft.Padding.symmetric(horizontal=16, vertical=16),
@@ -153,11 +153,11 @@ def main(page: ft.Page):
     page.add(
         ft.Row([
             sidebar,
-            ft.VerticalDivider(width=1, color="#E2E8F0"),
+            ft.VerticalDivider(width=1, color="#E5E7EB"),
             ft.Container(
                 content=content_area,
                 expand=True,
-                bgcolor="#F1F5F9",
+                bgcolor="#F7F8FA",
             ),
         ], expand=True, spacing=0)
     )
