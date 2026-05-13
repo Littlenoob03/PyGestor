@@ -131,9 +131,8 @@ def DashboardView(db: Database, navigate) -> ft.Container:
     ultimas = sorted(db.facturas, key=lambda f: f.fecha, reverse=True)[:5]
 
     def factura_row(f):
-        cl = db.get_cliente(f.cliente_id)
-        nombre = cl.nombre if cl else "—"
-        initials = "".join(w[0] for w in nombre.split()[:2]).upper()
+        nombre = f.destinatario if f.destinatario else "—"
+        initials = "".join(w[0] for w in nombre.split()[:2]).upper() if nombre != "—" else "-"
         return ft.Container(
             content=ft.Row([
                 ft.Container(

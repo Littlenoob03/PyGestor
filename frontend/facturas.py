@@ -20,7 +20,7 @@ def FacturasView(db: Database, navigate) -> ft.Container:
     f_iva      = dropdown("IVA %",  [("21","21 %"),("10","10 %"),("4","4 %"),("0","0 %")], value="21")
     f_irpf     = dropdown("IRPF %", [("15","15 %"),("7","7 % (nuevo)"),("0","0 %")], value="15")
     f_estado   = dropdown("Estado", [("pendiente","Pendiente"),("pagado","Pagado")], value="pendiente")
-    f_cliente  = ft.Ref[ft.Dropdown]()
+    f_destinatario = text_field("Destinatario", "Nombre o empresa")
 
     totales_text = ft.Text("", size=13, color=COLORS["text_secondary"])
 
@@ -41,21 +41,7 @@ def FacturasView(db: Database, navigate) -> ft.Container:
     f_base.on_change = recalc
     f_iva.on_change  = recalc
     f_irpf.on_change = recalc
-
-    def cliente_options():
-        return [ft.dropdown.Option(str(c.id), c.nombre) for c in db.clientes]
-
-    cliente_dd = ft.Dropdown(
-        label="Cliente",
-        options=cliente_options(),
-        border_radius=12,
-        border_color=COLORS["border"],
-        focused_border_color=COLORS["primary"],
-        text_size=14,
-        label_style=ft.TextStyle(color=COLORS["text_secondary"], size=13),
-        content_padding=ft.Padding.symmetric(horizontal=16, vertical=4),
-        ref=f_cliente,
-    )
+    f_irpf.on_change = recalc
 
     list_col = ft.Column(spacing=0)
     page_ref = ft.Ref[ft.Page]()
@@ -67,7 +53,7 @@ def FacturasView(db: Database, navigate) -> ft.Container:
             width=520,
             content=ft.Column([
                 ft.Row([f_numero, f_fecha], spacing=12),
-                cliente_dd,
+                f_destinatario,
                 f_concepto,
                 ft.Row([f_base, f_iva, f_irpf, f_estado], spacing=12),
                 ft.Container(
@@ -95,7 +81,7 @@ def FacturasView(db: Database, navigate) -> ft.Container:
         try:
             data = dict(
                 numero=f_numero.value,
-                cliente_id=int(cliente_dd.value or 0),
+                destinatario=f_destinatario.value,
                 concepto=f_concepto.value,
                 fecha=f_fecha.value,
                 base=float(f_base.value or 0),
@@ -121,7 +107,6 @@ def FacturasView(db: Database, navigate) -> ft.Container:
     ]
 
     def refresh(page):
-        cliente_dd.options = cliente_options()
         render_list()
         page.update()
 
@@ -143,7 +128,7 @@ def FacturasView(db: Database, navigate) -> ft.Container:
 
         list_col.controls.append(ft.Container(
             content=ft.Row([
-                th("Nº FACTURA", 120), th("CLIENTE", 160), th("FECHA", 100),
+                th("Nº FACTURA", 120), th("DESTINATARIO", 160), th("FECHA", 100),
                 th("BASE", 90), th("IVA", 80), th("IRPF", 80),
                 th("TOTAL", 100), th("ESTADO", 90), th("", 80),
             ], spacing=8),
@@ -162,8 +147,7 @@ def FacturasView(db: Database, navigate) -> ft.Container:
             ))
         else:
             for idx, f in enumerate(facts):
-                cl   = db.get_cliente(f.cliente_id)
-                nombre = cl.nombre if cl else "—"
+                nombre = f.destinatario if f.destinatario else "—"
                 bg   = "white" if idx % 2 == 0 else "#FAFAFA"
 
                 def make_actions(fid):
@@ -180,7 +164,7 @@ def FacturasView(db: Database, navigate) -> ft.Container:
                         f_iva.value      = str(int(fa.iva_pct))
                         f_irpf.value     = str(int(fa.irpf_pct))
                         f_estado.value   = fa.estado
-                        cliente_dd.value = str(fa.cliente_id)
+                        f_destinatario.value = fa.destinatario
                         dlg.title        = ft.Text("Editar Factura", weight=ft.FontWeight.BOLD)
                         recalc()
                         open_dlg(e.page)
@@ -290,8 +274,7 @@ def FacturasView(db: Database, navigate) -> ft.Container:
         f_iva.value      = "21"
         f_irpf.value     = "15"
         f_estado.value   = "pendiente"
-        cliente_dd.value = None
-        cliente_dd.options = cliente_options()
+        f_destinatario.value = ""
         dlg.title = ft.Text("Nueva Factura", weight=ft.FontWeight.BOLD)
         totales_text.value = ""
         open_dlg(e.page)

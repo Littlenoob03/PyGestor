@@ -2,14 +2,14 @@ import flet as ft
 from datetime import datetime
 from backend.database import Database
 from backend.logic import (
-    fmt, ingresos_por_cliente, gastos_por_categoria,
-    calcular_trimestre,
+    fmt, gastos_por_categoria,
+    calcular_trimestre, ingresos_por_mes, gastos_por_mes
 )
 from frontend.styles import (
-    COLORS, CAT_LABELS, card, section_header, page_wrapper,
+    COLORS, CAT_LABELS, MESES, card, section_header, page_wrapper,
 )
 from frontend.charts import (
-    bar_chart_clientes, donut_chart_gastos, bar_chart_trimestral,
+    bar_chart_ingresos_gastos, donut_chart_gastos, bar_chart_trimestral,
 )
 
 
@@ -40,13 +40,14 @@ def InformesView(db: Database, navigate) -> ft.Container:
         ], spacing=0),
     )
 
-    # ── BarChart – Ingresos por cliente ────────────────────
-    por_cliente = ingresos_por_cliente(facturas, db.clientes)
-    cl_b64 = bar_chart_clientes(por_cliente, width_px=480, height_px=250)
+    # ── BarChart – Ingresos vs Gastos Mensuales ────────────────────
+    ing_mes  = ingresos_por_mes(facturas)
+    gast_mes = gastos_por_mes(gastos)
+    cl_b64 = bar_chart_ingresos_gastos(ing_mes, gast_mes, MESES, width_px=480, height_px=250)
 
     clientes_chart = card(
         ft.Column([
-            ft.Text("Ingresos por Cliente", size=15,
+            ft.Text("Ingresos vs Gastos Mensuales", size=15,
                     weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
             ft.Container(height=8),
             ft.Image(src=cl_b64, width=480, height=250,

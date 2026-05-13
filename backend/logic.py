@@ -81,13 +81,6 @@ def gastos_por_mes(gastos: List[Gasto]) -> List[float]:
         meses[g.month - 1] += g.base
     return meses
 
-def ingresos_por_cliente(facturas: List[Factura], clientes) -> Dict[str, float]:
-    resultado = {}
-    for f in facturas:
-        cl = next((c for c in clientes if c.id == f.cliente_id), None)
-        nombre = cl.nombre if cl else "Desconocido"
-        resultado[nombre] = resultado.get(nombre, 0) + f.base
-    return resultado
 
 def gastos_por_categoria(gastos: List[Gasto]) -> Dict[str, float]:
     resultado = {}

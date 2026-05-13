@@ -2,7 +2,6 @@ import flet as ft
 from frontend.dashboard import DashboardView
 from frontend.facturas import FacturasView
 from frontend.gastos import GastosView
-from frontend.clientes import ClientesView
 from frontend.fiscal import FiscalView
 from frontend.informes import InformesView
 from frontend.login import LoginView
@@ -43,7 +42,6 @@ def main(page: ft.Page):
             "dashboard": lambda: DashboardView(db, navigate),
             "facturas":  lambda: FacturasView(db, navigate),
             "gastos":    lambda: GastosView(db, navigate),
-            "clientes":  lambda: ClientesView(db, navigate),
             "fiscal":    lambda: FiscalView(db, navigate),
             "informes":  lambda: InformesView(db, navigate),
         }
@@ -55,7 +53,6 @@ def main(page: ft.Page):
         ("dashboard", ft.Icons.DASHBOARD_OUTLINED,         "Dashboard"),
         ("facturas",  ft.Icons.RECEIPT_LONG_OUTLINED,      "Facturas"),
         ("gastos",    ft.Icons.PAYMENTS_OUTLINED,           "Gastos"),
-        ("clientes",  ft.Icons.PEOPLE_OUTLINED,             "Clientes"),
         ("fiscal",    ft.Icons.ACCOUNT_BALANCE_OUTLINED,    "Fiscal / IVA"),
         ("informes",  ft.Icons.BAR_CHART_OUTLINED,          "Informes"),
     ]

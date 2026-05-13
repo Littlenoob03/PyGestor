@@ -1,7 +1,7 @@
 import sqlite3
 import os
 from typing import List, Optional
-from backend.models import Cliente, Factura, Gasto
+from backend.models import Factura, Gasto
 
 DB_FILE = "gestorpro.db"
 
@@ -19,17 +19,6 @@ class Database:
         cur = self.conn.cursor()
 
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS clientes (
-                id        INTEGER PRIMARY KEY AUTOINCREMENT,
-                nombre    TEXT    NOT NULL,
-                nif       TEXT    NOT NULL,
-                email     TEXT    DEFAULT '',
-                telefono  TEXT    DEFAULT '',
-                direccion TEXT    DEFAULT ''
-            )
-        """)
-
-        cur.execute("""
             CREATE TABLE IF NOT EXISTS usuarios (
                 id        INTEGER PRIMARY KEY AUTOINCREMENT,
                 username  TEXT    NOT NULL UNIQUE,
@@ -39,16 +28,15 @@ class Database:
 
         cur.execute("""
             CREATE TABLE IF NOT EXISTS facturas (
-                id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                numero      TEXT    NOT NULL,
-                cliente_id  INTEGER NOT NULL,
-                concepto    TEXT    NOT NULL,
-                fecha       TEXT    NOT NULL,
-                base        REAL    NOT NULL,
-                iva_pct     REAL    NOT NULL DEFAULT 21,
-                irpf_pct    REAL    NOT NULL DEFAULT 15,
-                estado      TEXT    NOT NULL DEFAULT 'pendiente',
-                FOREIGN KEY (cliente_id) REFERENCES clientes(id)
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                numero       TEXT    NOT NULL,
+                destinatario TEXT    NOT NULL,
+                concepto     TEXT    NOT NULL,
+                fecha        TEXT    NOT NULL,
+                base         REAL    NOT NULL,
+                iva_pct      REAL    NOT NULL DEFAULT 21,
+                irpf_pct     REAL    NOT NULL DEFAULT 15,
+                estado       TEXT    NOT NULL DEFAULT 'pendiente'
             )
         """)
 
@@ -97,21 +85,11 @@ class Database:
     # ─────────────────────────────────────────────────────────
     # HELPERS INTERNOS
     # ─────────────────────────────────────────────────────────
-    def _row_to_cliente(self, row) -> Cliente:
-        return Cliente(
-            id=row["id"],
-            nombre=row["nombre"],
-            nif=row["nif"],
-            email=row["email"],
-            telefono=row["telefono"],
-            direccion=row["direccion"],
-        )
-
     def _row_to_factura(self, row) -> Factura:
         return Factura(
             id=row["id"],
             numero=row["numero"],
-            cliente_id=row["cliente_id"],
+            destinatario=row["destinatario"],
             concepto=row["concepto"],
             fecha=row["fecha"],
             base=row["base"],
@@ -132,63 +110,22 @@ class Database:
         )
 
     # ─────────────────────────────────────────────────────────
-    # CLIENTES — CRUD
-    # ─────────────────────────────────────────────────────────
-    def add_cliente(self, nombre, nif, email="", telefono="", direccion="") -> Cliente:
-        cur = self.conn.cursor()
-        cur.execute(
-            "INSERT INTO clientes (nombre, nif, email, telefono, direccion) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (nombre, nif, email, telefono, direccion),
-        )
-        self.conn.commit()
-        return self.get_cliente(cur.lastrowid)
-
-    def update_cliente(self, id: int, **kwargs) -> Optional[Cliente]:
-        allowed = {"nombre", "nif", "email", "telefono", "direccion"}
-        fields  = {k: v for k, v in kwargs.items() if k in allowed}
-        if not fields:
-            return self.get_cliente(id)
-        sets = ", ".join(f"{k} = ?" for k in fields)
-        self.conn.execute(
-            f"UPDATE clientes SET {sets} WHERE id = ?",
-            (*fields.values(), id),
-        )
-        self.conn.commit()
-        return self.get_cliente(id)
-
-    def delete_cliente(self, id: int):
-        self.conn.execute("DELETE FROM clientes WHERE id = ?", (id,))
-        self.conn.commit()
-
-    def get_cliente(self, id: int) -> Optional[Cliente]:
-        row = self.conn.execute(
-            "SELECT * FROM clientes WHERE id = ?", (id,)
-        ).fetchone()
-        return self._row_to_cliente(row) if row else None
-
-    @property
-    def clientes(self) -> List[Cliente]:
-        rows = self.conn.execute("SELECT * FROM clientes ORDER BY nombre").fetchall()
-        return [self._row_to_cliente(r) for r in rows]
-
-    # ─────────────────────────────────────────────────────────
     # FACTURAS — CRUD
     # ─────────────────────────────────────────────────────────
-    def add_factura(self, numero, cliente_id, concepto, fecha,
+    def add_factura(self, numero, destinatario, concepto, fecha,
                     base, iva_pct, irpf_pct, estado="pendiente") -> Factura:
         cur = self.conn.cursor()
         cur.execute(
             "INSERT INTO facturas "
-            "(numero, cliente_id, concepto, fecha, base, iva_pct, irpf_pct, estado) "
+            "(numero, destinatario, concepto, fecha, base, iva_pct, irpf_pct, estado) "
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (numero, cliente_id, concepto, fecha, base, iva_pct, irpf_pct, estado),
+            (numero, destinatario, concepto, fecha, base, iva_pct, irpf_pct, estado),
         )
         self.conn.commit()
         return self.get_factura(cur.lastrowid)
 
     def update_factura(self, id: int, **kwargs) -> Optional[Factura]:
-        allowed = {"numero", "cliente_id", "concepto", "fecha",
+        allowed = {"numero", "destinatario", "concepto", "fecha",
                    "base", "iva_pct", "irpf_pct", "estado"}
         fields  = {k: v for k, v in kwargs.items() if k in allowed}
         if not fields:
@@ -314,20 +251,16 @@ class Database:
         if not self.conn.execute("SELECT 1 FROM usuarios LIMIT 1").fetchone():
             self.add_usuario("admin", "admin")
 
-        # Solo inserta si la base de datos de clientes está vacía
-        if self.clientes:
+        # Solo inserta facturas si la base de datos de facturas está vacía
+        if self.facturas:
             return
 
-        c1 = self.add_cliente("Tech Solutions SL",    "B12345678", "info@techsolutions.es",  "+34 91 123 4567", "Calle Mayor 10, Madrid")
-        c2 = self.add_cliente("Diseño Creativo SA",   "A87654321", "contacto@disenio.es",    "+34 93 987 6543", "Paseo de Gracia 55, Barcelona")
-        c3 = self.add_cliente("Marketing Digital SL", "B11223344", "hola@mktdigital.es",     "+34 96 555 1234", "Gran Vía 20, Valencia")
-
-        self.add_factura("FAC-2025-001", c1.id, "Desarrollo web corporativo",  "2025-01-15", 3000, 21, 15, "pagado")
-        self.add_factura("FAC-2025-002", c2.id, "Diseño de logotipo",          "2025-02-10",  800, 21, 15, "pagado")
-        self.add_factura("FAC-2025-003", c3.id, "Campaña Google Ads",          "2025-03-05", 1500, 21, 15, "pagado")
-        self.add_factura("FAC-2025-004", c1.id, "Mantenimiento web - Abril",   "2025-04-01",  500, 21, 15, "pagado")
-        self.add_factura("FAC-2025-005", c2.id, "Diseño catálogo digital",     "2025-04-20", 1200, 21, 15, "pendiente")
-        self.add_factura("FAC-2025-006", c3.id, "Consultoría SEO",             "2025-05-15",  900, 21, 15, "pendiente")
+        self.add_factura("FAC-2025-001", "Tech Solutions SL", "Desarrollo web corporativo",  "2025-01-15", 3000, 21, 15, "pagado")
+        self.add_factura("FAC-2025-002", "Diseño Creativo SA", "Diseño de logotipo",          "2025-02-10",  800, 21, 15, "pagado")
+        self.add_factura("FAC-2025-003", "Marketing Digital SL", "Campaña Google Ads",          "2025-03-05", 1500, 21, 15, "pagado")
+        self.add_factura("FAC-2025-004", "Tech Solutions SL", "Mantenimiento web - Abril",   "2025-04-01",  500, 21, 15, "pagado")
+        self.add_factura("FAC-2025-005", "Diseño Creativo SA", "Diseño catálogo digital",     "2025-04-20", 1200, 21, 15, "pendiente")
+        self.add_factura("FAC-2025-006", "Marketing Digital SL", "Consultoría SEO",             "2025-05-15",  900, 21, 15, "pendiente")
 
         self.add_gasto("Adobe Creative Cloud",    "software",   "2025-01-05",  57.64, 21, True)
         self.add_gasto("Material de oficina",     "oficina",    "2025-01-20",  45.00, 21, True)

@@ -135,43 +135,34 @@ def donut_chart_gastos(por_cat: dict, labels_map: dict,
     return _to_b64(fig)
 
 
-# ── 3. BarChart – Ingresos por cliente ────────────────────
-def bar_chart_clientes(por_cliente: dict,
-                       width_px=480, height_px=240) -> str:
-    if not por_cliente:
+# ── 3. BarChart – Ingresos vs Gastos Mensuales ──────────────
+def bar_chart_ingresos_gastos(ing_mes: list, gast_mes: list, meses: list,
+                              width_px=480, height_px=240) -> str:
+    if not any(ing_mes) and not any(gast_mes):
         fig, ax = plt.subplots(figsize=(width_px / 130, height_px / 130))
         ax.text(0.5, 0.5, "Sin datos", ha="center", va="center",
                 transform=ax.transAxes, color=TEXT_CLR)
         ax.axis("off")
         return _to_b64(fig)
 
-    sorted_cl = sorted(por_cliente.items(), key=lambda x: -x[1])
-    nombres = [n[:15] + "…" if len(n) > 15 else n for n, _ in sorted_cl]
-    valores = [v for _, v in sorted_cl]
-    colores = [CHART_PALETTE[i % len(CHART_PALETTE)] for i in range(len(sorted_cl))]
-
     fig, ax = plt.subplots(figsize=(width_px / 130, height_px / 130))
-    bars = ax.bar(nombres, valores, color=colores, width=0.5,
-                  zorder=2)
+    import numpy as np
+    x = np.arange(len(meses))
+    width = 0.35
 
-    # Etiquetas sobre barras
-    for bar, val in zip(bars, valores):
-        ax.text(bar.get_x() + bar.get_width() / 2,
-                bar.get_height() + max(valores) * 0.02,
-                f"{val:.0f}€", ha="center", va="bottom",
-                fontsize=8, color=TEXT_DARK, fontweight="bold")
+    ax.bar(x - width/2, ing_mes, width, label='Ingresos', color=CHART_PALETTE[0], zorder=2)
+    ax.bar(x + width/2, gast_mes, width, label='Gastos', color=CHART_PALETTE[3], zorder=2)
 
-    ax.yaxis.set_major_formatter(FuncFormatter(euro_fmt))
-    ax.set_ylim(bottom=0, top=max(valores) * 1.22)
-    ax.tick_params(axis="x", length=0)
-    ax.tick_params(axis="y", length=0)
-    ax.grid(axis="y", color=GRID_CLR, linewidth=1, zorder=0)
-    ax.grid(axis="x", visible=False)
-
-    # Bordes redondeados (simular con rects)
-    for bar in bars:
-        bar.set_linewidth(0)
-
+    ax.set_xticks(x)
+    ax.set_xticklabels([m[:3] for m in meses], fontsize=8, color=TEXT_CLR)
+    ax.tick_params(axis="y", labelsize=8, colors=TEXT_CLR, left=False)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    ax.grid(axis="y", color=GRID_CLR, linestyle="--", linewidth=0.5, zorder=0)
+    
+    ax.legend(fontsize=8, frameon=False, labelcolor=TEXT_CLR, loc='upper center', bbox_to_anchor=(0.5, 1.15), ncol=2)
+    
+    fig.tight_layout()
     return _to_b64(fig)
 
 

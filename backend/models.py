@@ -3,19 +3,10 @@ from datetime import date
 from typing import Optional
 
 @dataclass
-class Cliente:
-    id: int
-    nombre: str
-    nif: str
-    email: str = ""
-    telefono: str = ""
-    direccion: str = ""
-
-@dataclass
 class Factura:
     id: int
     numero: str
-    cliente_id: int
+    destinatario: str
     concepto: str
     fecha: str          # "YYYY-MM-DD"
     base: float
