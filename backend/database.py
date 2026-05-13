@@ -30,6 +30,14 @@ class Database:
         """)
 
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                username  TEXT    NOT NULL UNIQUE,
+                password  TEXT    NOT NULL
+            )
+        """)
+
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS facturas (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 numero      TEXT    NOT NULL,
@@ -57,6 +65,34 @@ class Database:
         """)
 
         self.conn.commit()
+
+    # ─────────────────────────────────────────────────────────
+    # USUARIOS — AUTENTICACIÓN
+    # ─────────────────────────────────────────────────────────
+    def get_usuario(self, username, password):
+        row = self.conn.execute(
+            "SELECT * FROM usuarios WHERE username = ? AND password = ?",
+            (username, password)
+        ).fetchone()
+        return dict(row) if row else None
+
+    def get_usuario_by_username(self, username):
+        row = self.conn.execute(
+            "SELECT * FROM usuarios WHERE username = ?",
+            (username,)
+        ).fetchone()
+        return dict(row) if row else None
+
+    def add_usuario(self, username, password):
+        try:
+            self.conn.execute(
+                "INSERT INTO usuarios (username, password) VALUES (?, ?)",
+                (username, password)
+            )
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False # Usuario ya existe
 
     # ─────────────────────────────────────────────────────────
     # HELPERS INTERNOS
@@ -274,7 +310,11 @@ class Database:
     # DATOS DE DEMO
     # ─────────────────────────────────────────────────────────
     def seed_demo_data(self):
-        # Solo inserta si la base de datos está vacía
+        # Insert admin user if empty
+        if not self.conn.execute("SELECT 1 FROM usuarios LIMIT 1").fetchone():
+            self.add_usuario("admin", "admin")
+
+        # Solo inserta si la base de datos de clientes está vacía
         if self.clientes:
             return
 

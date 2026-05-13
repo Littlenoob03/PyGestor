@@ -168,11 +168,11 @@ def main(page: ft.Page):
     def logout():
         page.is_guest = False
         page.controls.clear()
-        page.add(LoginView(on_login))
+        page.add(LoginView(db, on_login))
         page.update()
 
     # Inicializar con Login
-    page.add(LoginView(on_login))
+    page.add(LoginView(db, on_login))
 
 
 if __name__ == "__main__":
