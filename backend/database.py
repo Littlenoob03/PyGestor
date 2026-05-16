@@ -227,30 +227,14 @@ class Database:
         return [self._row_to_gasto(r) for r in rows]
 
     # ─────────────────────────────────────────────────────────
-    # DATOS DE DEMO
+    # DATOS DE DEMO (ELIMINADOS)
     # ─────────────────────────────────────────────────────────
     def seed_demo_data(self):
         # Insert admin user if empty
         if not self.conn.execute("SELECT 1 FROM usuarios LIMIT 1").fetchone():
             self.add_usuario("admin", "admin")
-
-        # Solo inserta si la tabla ingresos está vacía
-        if self.ingresos:
-            return
-
-        self.add_ingreso("Empresa Principal SA", "Nómina Enero", "2025-01-28", 2500, "cobrado")
-        self.add_ingreso("Venta Wallapop", "Bicicleta antigua", "2025-02-10",  150, "cobrado")
-        self.add_ingreso("Empresa Principal SA", "Nómina Febrero", "2025-02-28", 2500, "cobrado")
-        self.add_ingreso("Bizum", "Cena amigos", "2025-03-05",  45, "cobrado")
-        self.add_ingreso("Empresa Principal SA", "Nómina Marzo", "2025-03-28", 2500, "cobrado")
-        self.add_ingreso("Hacienda", "Devolución Renta", "2025-04-20", 350, "pendiente")
-
-        self.add_gasto("Mercadona",    "alimentacion", "2025-01-05",  85.50)
-        self.add_gasto("Netflix",      "ocio",         "2025-01-20",  15.99)
-        self.add_gasto("Gimnasio",     "salud",        "2025-02-01",  45.00)
-        self.add_gasto("Mercadona",    "alimentacion", "2025-02-12",  92.30)
-        self.add_gasto("Restaurante",  "ocio",         "2025-03-10",  42.00)
-        self.add_gasto("Seguro Coche", "vehiculo",     "2025-04-01", 350.00)
+        
+        # Ya no se insertan datos de prueba falsos.
 
     # ─────────────────────────────────────────────────────────
     # CIERRE DE CONEXIÓN

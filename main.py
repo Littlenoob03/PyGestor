@@ -3,6 +3,8 @@ from frontend.dashboard import DashboardView
 from frontend.ingresos import IngresosView
 from frontend.gastos import GastosView
 from frontend.informes import InformesView
+from frontend.formulario_ingreso import FormularioIngresoView
+from frontend.formulario_gasto import FormularioGastoView
 from frontend.login import LoginView
 from backend.database import Database
 
@@ -30,18 +32,20 @@ def main(page: ft.Page):
     current_view = {"name": "dashboard"}
     content_area = ft.Container(expand=True)
 
-    def navigate(view_name: str):
+    def navigate(view_name: str, **kwargs):
         current_view["name"] = view_name
-        render_view(view_name)
+        render_view(view_name, **kwargs)
         update_nav(view_name)
         page.update()
 
-    def render_view(view_name: str):
+    def render_view(view_name: str, **kwargs):
         views = {
             "dashboard": lambda: DashboardView(db, navigate),
             "ingresos":  lambda: IngresosView(db, navigate),
             "gastos":    lambda: GastosView(db, navigate),
             "informes":  lambda: InformesView(db, navigate),
+            "form_ingreso": lambda: FormularioIngresoView(db, navigate, **kwargs),
+            "form_gasto":   lambda: FormularioGastoView(db, navigate, **kwargs),
         }
         content_area.content = views.get(view_name, views["dashboard"])()
         page.update()

@@ -156,7 +156,7 @@ def btn_primary(text, on_click=None, icon=None, width=None):
 
 def btn_danger(text: str, on_click=None) -> ft.OutlinedButton:
     return ft.OutlinedButton(
-        text=text,
+        content=ft.Text(text),
         on_click=on_click,
         style=ft.ButtonStyle(
             color=COLORS["danger"],
@@ -167,16 +167,27 @@ def btn_danger(text: str, on_click=None) -> ft.OutlinedButton:
 
 
 def btn_secondary(text, on_click=None, icon=None, width=None):
-    btn = ft.OutlinedButton()
-    btn.text = str(text)
-    btn.on_click = on_click
-    btn.icon = icon
-    btn.width = width
-    btn.style = ft.ButtonStyle(
-        shape=ft.RoundedRectangleBorder(radius=8),
-        color=COLORS["primary"],
+    inner_controls = []
+    if icon:
+        inner_controls.append(ft.Icon(icon, size=16, color=COLORS["primary"]))
+    inner_controls.append(ft.Text(str(text), weight=ft.FontWeight.BOLD, color=COLORS["primary"]))
+    
+    inner = ft.Row(
+        inner_controls,
+        alignment=ft.MainAxisAlignment.CENTER,
+        spacing=8,
+        tight=True,
     )
-    return btn
+    
+    return ft.OutlinedButton(
+        content=inner,
+        on_click=on_click,
+        width=width,
+        style=ft.ButtonStyle(
+            shape=ft.RoundedRectangleBorder(radius=8),
+            color=COLORS["primary"],
+        )
+    )
 
 
 def badge(text: str, kind: str = "default") -> ft.Container:

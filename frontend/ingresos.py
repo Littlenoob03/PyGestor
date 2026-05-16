@@ -1,77 +1,17 @@
 import flet as ft
-from datetime import date, datetime
+from datetime import datetime
 from backend.database import Database
 from backend.logic import fmt
 from frontend.styles import (
     COLORS, card, btn_primary, btn_secondary, btn_danger,
-    badge, section_header, text_field, dropdown, snack, page_wrapper, divider
+    badge, section_header, snack, page_wrapper
 )
 
 def IngresosView(db: Database, navigate) -> ft.Container:
     year = datetime.now().year
     filtro_estado = {"val": "all"}
-    editing_id = {"val": None}
-
-    # ── Formulario (Dialog) ────────────────────────────────
-    f_origen   = text_field("Fuente / Origen", "Nómina, Bizum, etc.")
-    f_concepto = text_field("Concepto",   "Descripción del ingreso")
-    f_fecha    = text_field("Fecha (YYYY-MM-DD)", str(date.today()), value=str(date.today()))
-    f_importe  = text_field("Importe", "0.00", keyboard_type=ft.KeyboardType.NUMBER)
-    f_estado   = dropdown("Estado", [("pendiente","Pendiente"),("cobrado","Cobrado")], value="cobrado")
 
     list_col = ft.Column(spacing=0)
-    page_ref = ft.Ref[ft.Page]()
-
-    dlg = ft.AlertDialog(
-        modal=True,
-        title=ft.Text("Nuevo Ingreso", weight=ft.FontWeight.BOLD),
-        content=ft.Container(
-            width=520,
-            content=ft.Column([
-                ft.Row([f_origen, f_fecha], spacing=12),
-                f_concepto,
-                ft.Row([f_importe, f_estado], spacing=12),
-            ], spacing=12, tight=True),
-        ),
-        actions_alignment=ft.MainAxisAlignment.END,
-    )
-
-    def open_dlg(page):
-        page.dialog = dlg
-        dlg.open = True
-        page.update()
-
-    def close_dlg(e):
-        dlg.open = False
-        editing_id["val"] = None
-        e.page.update()
-
-    def guardar(e):
-        page = e.page
-        try:
-            data = dict(
-                origen=f_origen.value,
-                concepto=f_concepto.value,
-                fecha=f_fecha.value,
-                importe=float(f_importe.value or 0),
-                estado=f_estado.value,
-            )
-            if editing_id["val"]:
-                db.update_ingreso(editing_id["val"], **data)
-                snack(page, "Ingreso actualizado ✅")
-            else:
-                db.add_ingreso(**data)
-                snack(page, "Ingreso creado ✅")
-            dlg.open = False
-            editing_id["val"] = None
-            refresh(page)
-        except Exception as ex:
-            snack(page, f"Error: {ex}", ok=False)
-
-    dlg.actions = [
-        btn_secondary("Cancelar", on_click=close_dlg),
-        btn_primary("Guardar", on_click=guardar),
-    ]
 
     def refresh(page):
         render_list()
@@ -120,15 +60,7 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                         if getattr(e.page, "is_guest", False):
                             snack(e.page, "Modo Invitado: Inicia sesión para editar.", ok=False)
                             return
-                        ing = db.get_ingreso(iid)
-                        editing_id["val"] = iid
-                        f_origen.value   = ing.origen
-                        f_concepto.value = ing.concepto
-                        f_fecha.value    = ing.fecha
-                        f_importe.value  = str(ing.importe)
-                        f_estado.value   = ing.estado
-                        dlg.title        = ft.Text("Editar Ingreso", weight=ft.FontWeight.BOLD)
-                        open_dlg(e.page)
+                        navigate("form_ingreso", edit_id=iid)
 
                     def on_toggle(e, iid=iid):
                         if getattr(e.page, "is_guest", False):
@@ -224,14 +156,7 @@ def IngresosView(db: Database, navigate) -> ft.Container:
         if getattr(e.page, "is_guest", False):
             snack(e.page, "Modo Invitado: Inicia sesión para añadir datos.", ok=False)
             return
-        editing_id["val"] = None
-        f_origen.value   = ""
-        f_concepto.value = ""
-        f_fecha.value    = str(date.today())
-        f_importe.value  = ""
-        f_estado.value   = "cobrado"
-        dlg.title = ft.Text("Nuevo Ingreso", weight=ft.FontWeight.BOLD)
-        open_dlg(e.page)
+        navigate("form_ingreso")
 
     content = ft.Column([
         ft.Row([

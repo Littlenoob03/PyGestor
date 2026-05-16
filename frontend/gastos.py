@@ -1,74 +1,16 @@
 import flet as ft
-from datetime import date, datetime
+from datetime import datetime
 from backend.database import Database
 from backend.logic import fmt, gastos_por_categoria
 from frontend.styles import (
     COLORS, CAT_LABELS, card, btn_primary, btn_secondary, btn_danger,
-    badge, section_header, text_field, dropdown, snack, page_wrapper
+    section_header, snack, page_wrapper
 )
 
 def GastosView(db: Database, navigate) -> ft.Container:
     year = datetime.now().year
-    editing_id = {"val": None}
-
-    g_desc    = text_field("Descripción", "Descripción del gasto")
-    g_fecha   = text_field("Fecha (YYYY-MM-DD)", str(date.today()), value=str(date.today()))
-    g_importe = text_field("Importe", "0.00", keyboard_type=ft.KeyboardType.NUMBER)
-    g_cat     = dropdown("Categoría", [
-        ("oficina","🖊️ Oficina"), ("software","💻 Software"),
-        ("marketing","📢 Marketing"), ("transporte","🚗 Transporte"),
-        ("formacion","📚 Formación"), ("seguro","🛡️ Seguro"), 
-        ("alimentacion", "🛒 Alimentación"), ("ocio", "🍿 Ocio"),
-        ("salud", "🏥 Salud"), ("vehiculo", "🚙 Vehículo"),
-        ("otros","📦 Otros"),
-    ], value="otros")
 
     list_col = ft.Column(spacing=0)
-
-    dlg = ft.AlertDialog(
-        modal=True,
-        title=ft.Text("Nuevo Gasto", weight=ft.FontWeight.BOLD),
-        content=ft.Container(
-            width=480,
-            content=ft.Column([
-                ft.Row([g_desc, g_fecha], spacing=12),
-                ft.Row([g_importe, g_cat], spacing=12),
-            ], spacing=12, tight=True),
-        ),
-        actions_alignment=ft.MainAxisAlignment.END,
-    )
-
-    def close_dlg(e):
-        dlg.open = False
-        editing_id["val"] = None
-        e.page.update()
-
-    def guardar(e):
-        page = e.page
-        try:
-            data = dict(
-                descripcion=g_desc.value,
-                categoria=g_cat.value,
-                fecha=g_fecha.value,
-                importe=float(g_importe.value or 0),
-            )
-            if editing_id["val"]:
-                db.update_gasto(editing_id["val"], **data)
-                snack(page, "Gasto actualizado ✅")
-            else:
-                db.add_gasto(**data)
-                snack(page, "Gasto registrado ✅")
-            dlg.open = False
-            editing_id["val"] = None
-            render_list()
-            page.update()
-        except Exception as ex:
-            snack(page, f"Error: {ex}", ok=False)
-
-    dlg.actions = [
-        btn_secondary("Cancelar", on_click=close_dlg),
-        btn_primary("Guardar", on_click=guardar),
-    ]
 
     def render_list():
         gasts = sorted(db.gastos_by_year(year), key=lambda g: g.fecha, reverse=True)
@@ -109,16 +51,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
                         if getattr(e.page, "is_guest", False):
                             snack(e.page, "Modo Invitado: Inicia sesión para editar.", ok=False)
                             return
-                        ga = db.get_gasto(gid)
-                        editing_id["val"] = gid
-                        g_desc.value      = ga.descripcion
-                        g_cat.value       = ga.categoria
-                        g_fecha.value     = ga.fecha
-                        g_importe.value   = str(ga.importe)
-                        dlg.title = ft.Text("Editar Gasto", weight=ft.FontWeight.BOLD)
-                        e.page.dialog = dlg
-                        dlg.open = True
-                        e.page.update()
+                        navigate("form_gasto", edit_id=gid)
 
                     def on_delete(e, gid=gid):
                         if getattr(e.page, "is_guest", False):
@@ -210,15 +143,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
         if getattr(e.page, "is_guest", False):
             snack(e.page, "Modo Invitado: Inicia sesión para añadir datos.", ok=False)
             return
-        editing_id["val"] = None
-        g_desc.value    = ""
-        g_fecha.value   = str(date.today())
-        g_importe.value = ""
-        g_cat.value     = "otros"
-        dlg.title = ft.Text("Nuevo Gasto", weight=ft.FontWeight.BOLD)
-        e.page.dialog = dlg
-        dlg.open = True
-        e.page.update()
+        navigate("form_gasto")
 
     content = ft.Column([
         ft.Row([
