@@ -169,6 +169,8 @@ def main(page: ft.Page):
         page.add(LoginView(db, on_login))
         page.update()
 
+    page.logout = logout  # Permitir redirigir al login desde cualquier vista
+
     # Inicializar con Login
     page.add(LoginView(db, on_login))
 

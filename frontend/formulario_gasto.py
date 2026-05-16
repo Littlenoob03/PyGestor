@@ -35,6 +35,8 @@ def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
         page = e.page
         if getattr(page, "is_guest", False):
             snack(page, "Modo Invitado: Inicia sesión para guardar datos.", ok=False)
+            if hasattr(page, "logout"):
+                page.logout()
             return
 
         try:

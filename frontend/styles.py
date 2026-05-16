@@ -46,13 +46,17 @@ CHART_COLORS = [
 ]
 
 CAT_LABELS = {
-    "oficina":    ("🖊️", "Oficina"),
-    "software":   ("💻", "Software"),
-    "marketing":  ("📢", "Marketing"),
-    "transporte": ("🚗", "Transporte"),
-    "formacion":  ("📚", "Formación"),
-    "seguro":     ("🛡️", "Seguro"),
-    "otros":      ("📦", "Otros"),
+    "oficina":      ("🖊️", "Oficina"),
+    "software":     ("💻", "Software"),
+    "marketing":    ("📢", "Marketing"),
+    "transporte":   ("🚗", "Transporte"),
+    "formacion":    ("📚", "Formación"),
+    "seguro":       ("🛡️", "Seguro"),
+    "alimentacion": ("🛒", "Alimentación"),
+    "ocio":         ("🍿", "Ocio"),
+    "salud":        ("🏥", "Salud"),
+    "vehiculo":     ("🚙", "Vehículo"),
+    "otros":        ("📦", "Otros"),
 }
 
 MESES = ["Ene","Feb","Mar","Abr","May","Jun",
