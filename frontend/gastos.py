@@ -57,24 +57,32 @@ def GastosView(db: Database, navigate) -> ft.Container:
                         if getattr(e.page, "is_guest", False):
                             snack(e.page, "Modo Invitado: Inicia sesión para borrar.", ok=False)
                             return
+                            
+                        dlg = ft.AlertDialog(
+                            title=ft.Text("¿Eliminar gasto?"),
+                            content=ft.Text("Esta acción no se puede deshacer.")
+                        )
+                        
                         def confirm(ev):
                             db.delete_gasto(gid)
-                            ev.page.dialog.open = False
+                            dlg.open = False
+                            ev.page.update()
                             snack(ev.page, "Gasto eliminado")
                             render_list()
                             ev.page.update()
+                            
                         def cancel(ev):
-                            ev.page.dialog.open = False
+                            dlg.open = False
                             ev.page.update()
-                        e.page.dialog = ft.AlertDialog(
-                            title=ft.Text("¿Eliminar gasto?"),
-                            content=ft.Text("Esta acción no se puede deshacer."),
-                            actions=[
-                                btn_secondary("Cancelar", on_click=cancel),
-                                btn_danger("Eliminar", on_click=confirm),
-                            ],
-                            open=True,
-                        )
+                            
+                        dlg.actions = [
+                            ft.TextButton("Cancelar", on_click=cancel),
+                            ft.TextButton("Eliminar", on_click=confirm, style=ft.ButtonStyle(color="red")),
+                        ]
+                        
+                        # SOLUCIÓN: Agregar al overlay y abrir correctamente
+                        e.page.overlay.append(dlg)
+                        dlg.open = True
                         e.page.update()
 
                     return ft.Row([
