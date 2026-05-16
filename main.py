@@ -1,14 +1,13 @@
 import flet as ft
 from frontend.dashboard import DashboardView
-from frontend.facturas import FacturasView
+from frontend.ingresos import IngresosView
 from frontend.gastos import GastosView
-from frontend.fiscal import FiscalView
 from frontend.informes import InformesView
 from frontend.login import LoginView
 from backend.database import Database
 
 def main(page: ft.Page):
-    page.title = "PyGestor - Autónomos"
+    page.title = "PyGestor"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 0
     page.spacing = 0
@@ -40,9 +39,8 @@ def main(page: ft.Page):
     def render_view(view_name: str):
         views = {
             "dashboard": lambda: DashboardView(db, navigate),
-            "facturas":  lambda: FacturasView(db, navigate),
+            "ingresos":  lambda: IngresosView(db, navigate),
             "gastos":    lambda: GastosView(db, navigate),
-            "fiscal":    lambda: FiscalView(db, navigate),
             "informes":  lambda: InformesView(db, navigate),
         }
         content_area.content = views.get(view_name, views["dashboard"])()
@@ -51,9 +49,8 @@ def main(page: ft.Page):
     # ── Nav items con iconos Material Design ───────────────
     nav_items = [
         ("dashboard", ft.Icons.DASHBOARD_OUTLINED,         "Dashboard"),
-        ("facturas",  ft.Icons.RECEIPT_LONG_OUTLINED,      "Facturas"),
+        ("ingresos",  ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED, "Ingresos"),
         ("gastos",    ft.Icons.PAYMENTS_OUTLINED,           "Gastos"),
-        ("fiscal",    ft.Icons.ACCOUNT_BALANCE_OUTLINED,    "Fiscal / IVA"),
         ("informes",  ft.Icons.BAR_CHART_OUTLINED,          "Informes"),
     ]
 
@@ -121,15 +118,15 @@ def main(page: ft.Page):
             ft.Container(
                 content=ft.Row([
                     ft.Container(
-                        content=ft.Text("AU", size=13, weight=ft.FontWeight.BOLD, color="white"),
+                        content=ft.Text("US", size=13, weight=ft.FontWeight.BOLD, color="white"),
                         width=36, height=36,
                         bgcolor=ft.Colors.with_opacity(0.25, "white"),
                         border_radius=18,
                         alignment=ft.Alignment(0, 0),
                     ),
                     ft.Column([
-                        ft.Text("Autónomo", size=13, weight=ft.FontWeight.W_500, color="white"),
-                        ft.Text("Pro Plan", size=11, color="#A5B4FC"),
+                        ft.Text("Usuario", size=13, weight=ft.FontWeight.W_500, color="white"),
+                        ft.Text("Plan Personal", size=11, color="#A5B4FC"),
                     ], spacing=0, expand=True),
                     ft.PopupMenuButton(
                         icon=ft.Icons.MORE_VERT,

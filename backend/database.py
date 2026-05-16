@@ -1,9 +1,9 @@
 import sqlite3
 import os
 from typing import List, Optional
-from backend.models import Factura, Gasto
+from backend.models import Ingreso, Gasto
 
-DB_FILE = "gestorpro.db"
+DB_FILE = "pygestor.db"
 
 
 class Database:
@@ -27,16 +27,13 @@ class Database:
         """)
 
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS facturas (
+            CREATE TABLE IF NOT EXISTS ingresos (
                 id           INTEGER PRIMARY KEY AUTOINCREMENT,
-                numero       TEXT    NOT NULL,
-                destinatario TEXT    NOT NULL,
+                origen       TEXT    NOT NULL,
                 concepto     TEXT    NOT NULL,
                 fecha        TEXT    NOT NULL,
-                base         REAL    NOT NULL,
-                iva_pct      REAL    NOT NULL DEFAULT 21,
-                irpf_pct     REAL    NOT NULL DEFAULT 15,
-                estado       TEXT    NOT NULL DEFAULT 'pendiente'
+                importe      REAL    NOT NULL,
+                estado       TEXT    NOT NULL DEFAULT 'cobrado'
             )
         """)
 
@@ -46,9 +43,7 @@ class Database:
                 descripcion TEXT    NOT NULL,
                 categoria   TEXT    NOT NULL,
                 fecha       TEXT    NOT NULL,
-                base        REAL    NOT NULL,
-                iva_pct     REAL    NOT NULL DEFAULT 21,
-                deducible   INTEGER NOT NULL DEFAULT 1   -- 1=True, 0=False
+                importe     REAL    NOT NULL
             )
         """)
 
@@ -85,16 +80,13 @@ class Database:
     # ─────────────────────────────────────────────────────────
     # HELPERS INTERNOS
     # ─────────────────────────────────────────────────────────
-    def _row_to_factura(self, row) -> Factura:
-        return Factura(
+    def _row_to_ingreso(self, row) -> Ingreso:
+        return Ingreso(
             id=row["id"],
-            numero=row["numero"],
-            destinatario=row["destinatario"],
+            origen=row["origen"],
             concepto=row["concepto"],
             fecha=row["fecha"],
-            base=row["base"],
-            iva_pct=row["iva_pct"],
-            irpf_pct=row["irpf_pct"],
+            importe=row["importe"],
             estado=row["estado"],
         )
 
@@ -104,100 +96,91 @@ class Database:
             descripcion=row["descripcion"],
             categoria=row["categoria"],
             fecha=row["fecha"],
-            base=row["base"],
-            iva_pct=row["iva_pct"],
-            deducible=bool(row["deducible"]),
+            importe=row["importe"],
         )
 
     # ─────────────────────────────────────────────────────────
-    # FACTURAS — CRUD
+    # INGRESOS — CRUD
     # ─────────────────────────────────────────────────────────
-    def add_factura(self, numero, destinatario, concepto, fecha,
-                    base, iva_pct, irpf_pct, estado="pendiente") -> Factura:
+    def add_ingreso(self, origen, concepto, fecha, importe, estado="cobrado") -> Ingreso:
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO facturas "
-            "(numero, destinatario, concepto, fecha, base, iva_pct, irpf_pct, estado) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            (numero, destinatario, concepto, fecha, base, iva_pct, irpf_pct, estado),
+            "INSERT INTO ingresos "
+            "(origen, concepto, fecha, importe, estado) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (origen, concepto, fecha, importe, estado),
         )
         self.conn.commit()
-        return self.get_factura(cur.lastrowid)
+        return self.get_ingreso(cur.lastrowid)
 
-    def update_factura(self, id: int, **kwargs) -> Optional[Factura]:
-        allowed = {"numero", "destinatario", "concepto", "fecha",
-                   "base", "iva_pct", "irpf_pct", "estado"}
+    def update_ingreso(self, id: int, **kwargs) -> Optional[Ingreso]:
+        allowed = {"origen", "concepto", "fecha", "importe", "estado"}
         fields  = {k: v for k, v in kwargs.items() if k in allowed}
         if not fields:
-            return self.get_factura(id)
+            return self.get_ingreso(id)
         sets = ", ".join(f"{k} = ?" for k in fields)
         self.conn.execute(
-            f"UPDATE facturas SET {sets} WHERE id = ?",
+            f"UPDATE ingresos SET {sets} WHERE id = ?",
             (*fields.values(), id),
         )
         self.conn.commit()
-        return self.get_factura(id)
+        return self.get_ingreso(id)
 
-    def delete_factura(self, id: int):
-        self.conn.execute("DELETE FROM facturas WHERE id = ?", (id,))
+    def delete_ingreso(self, id: int):
+        self.conn.execute("DELETE FROM ingresos WHERE id = ?", (id,))
         self.conn.commit()
 
-    def get_factura(self, id: int) -> Optional[Factura]:
+    def get_ingreso(self, id: int) -> Optional[Ingreso]:
         row = self.conn.execute(
-            "SELECT * FROM facturas WHERE id = ?", (id,)
+            "SELECT * FROM ingresos WHERE id = ?", (id,)
         ).fetchone()
-        return self._row_to_factura(row) if row else None
+        return self._row_to_ingreso(row) if row else None
 
     @property
-    def facturas(self) -> List[Factura]:
+    def ingresos(self) -> List[Ingreso]:
         rows = self.conn.execute(
-            "SELECT * FROM facturas ORDER BY fecha DESC"
+            "SELECT * FROM ingresos ORDER BY fecha DESC"
         ).fetchall()
-        return [self._row_to_factura(r) for r in rows]
+        return [self._row_to_ingreso(r) for r in rows]
 
-    def facturas_by_year(self, year: int) -> List[Factura]:
+    def ingresos_by_year(self, year: int) -> List[Ingreso]:
         rows = self.conn.execute(
-            "SELECT * FROM facturas WHERE strftime('%Y', fecha) = ? ORDER BY fecha DESC",
+            "SELECT * FROM ingresos WHERE strftime('%Y', fecha) = ? ORDER BY fecha DESC",
             (str(year),),
         ).fetchall()
-        return [self._row_to_factura(r) for r in rows]
+        return [self._row_to_ingreso(r) for r in rows]
 
-    def facturas_by_trimestre(self, year: int, t: int) -> List[Factura]:
-        # Calculamos los meses del trimestre directamente en SQL
+    def ingresos_by_trimestre(self, year: int, t: int) -> List[Ingreso]:
         month_ranges = {1: ("01","03"), 2: ("04","06"),
                         3: ("07","09"), 4: ("10","12")}
         m_ini, m_fin = month_ranges[t]
         rows = self.conn.execute(
-            "SELECT * FROM facturas "
+            "SELECT * FROM ingresos "
             "WHERE strftime('%Y', fecha) = ? "
             "  AND strftime('%m', fecha) BETWEEN ? AND ? "
             "ORDER BY fecha DESC",
             (str(year), m_ini, m_fin),
         ).fetchall()
-        return [self._row_to_factura(r) for r in rows]
+        return [self._row_to_ingreso(r) for r in rows]
 
     # ─────────────────────────────────────────────────────────
     # GASTOS — CRUD
     # ─────────────────────────────────────────────────────────
-    def add_gasto(self, descripcion, categoria, fecha,
-                  base, iva_pct, deducible=True) -> Gasto:
+    def add_gasto(self, descripcion, categoria, fecha, importe) -> Gasto:
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO gastos (descripcion, categoria, fecha, base, iva_pct, deducible) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (descripcion, categoria, fecha, base, iva_pct, int(deducible)),
+            "INSERT INTO gastos (descripcion, categoria, fecha, importe) "
+            "VALUES (?, ?, ?, ?)",
+            (descripcion, categoria, fecha, importe),
         )
         self.conn.commit()
         return self.get_gasto(cur.lastrowid)
 
     def update_gasto(self, id: int, **kwargs) -> Optional[Gasto]:
-        allowed = {"descripcion", "categoria", "fecha", "base", "iva_pct", "deducible"}
+        allowed = {"descripcion", "categoria", "fecha", "importe"}
         fields  = {k: v for k, v in kwargs.items() if k in allowed}
         if not fields:
             return self.get_gasto(id)
-        # Convertir booleano a entero para SQLite
-        if "deducible" in fields:
-            fields["deducible"] = int(fields["deducible"])
         sets = ", ".join(f"{k} = ?" for k in fields)
         self.conn.execute(
             f"UPDATE gastos SET {sets} WHERE id = ?",
@@ -251,23 +234,23 @@ class Database:
         if not self.conn.execute("SELECT 1 FROM usuarios LIMIT 1").fetchone():
             self.add_usuario("admin", "admin")
 
-        # Solo inserta facturas si la base de datos de facturas está vacía
-        if self.facturas:
+        # Solo inserta si la tabla ingresos está vacía
+        if self.ingresos:
             return
 
-        self.add_factura("FAC-2025-001", "Tech Solutions SL", "Desarrollo web corporativo",  "2025-01-15", 3000, 21, 15, "pagado")
-        self.add_factura("FAC-2025-002", "Diseño Creativo SA", "Diseño de logotipo",          "2025-02-10",  800, 21, 15, "pagado")
-        self.add_factura("FAC-2025-003", "Marketing Digital SL", "Campaña Google Ads",          "2025-03-05", 1500, 21, 15, "pagado")
-        self.add_factura("FAC-2025-004", "Tech Solutions SL", "Mantenimiento web - Abril",   "2025-04-01",  500, 21, 15, "pagado")
-        self.add_factura("FAC-2025-005", "Diseño Creativo SA", "Diseño catálogo digital",     "2025-04-20", 1200, 21, 15, "pendiente")
-        self.add_factura("FAC-2025-006", "Marketing Digital SL", "Consultoría SEO",             "2025-05-15",  900, 21, 15, "pendiente")
+        self.add_ingreso("Empresa Principal SA", "Nómina Enero", "2025-01-28", 2500, "cobrado")
+        self.add_ingreso("Venta Wallapop", "Bicicleta antigua", "2025-02-10",  150, "cobrado")
+        self.add_ingreso("Empresa Principal SA", "Nómina Febrero", "2025-02-28", 2500, "cobrado")
+        self.add_ingreso("Bizum", "Cena amigos", "2025-03-05",  45, "cobrado")
+        self.add_ingreso("Empresa Principal SA", "Nómina Marzo", "2025-03-28", 2500, "cobrado")
+        self.add_ingreso("Hacienda", "Devolución Renta", "2025-04-20", 350, "pendiente")
 
-        self.add_gasto("Adobe Creative Cloud",    "software",   "2025-01-05",  57.64, 21, True)
-        self.add_gasto("Material de oficina",     "oficina",    "2025-01-20",  45.00, 21, True)
-        self.add_gasto("Curso marketing digital", "formacion",  "2025-02-12", 297.00, 21, True)
-        self.add_gasto("Dominio y hosting",       "software",   "2025-02-28", 120.00, 21, True)
-        self.add_gasto("Desplazamiento cliente",  "transporte", "2025-03-10",  35.00,  0, True)
-        self.add_gasto("Seguro RC Profesional",   "seguro",     "2025-04-01", 400.00,  0, True)
+        self.add_gasto("Mercadona",    "alimentacion", "2025-01-05",  85.50)
+        self.add_gasto("Netflix",      "ocio",         "2025-01-20",  15.99)
+        self.add_gasto("Gimnasio",     "salud",        "2025-02-01",  45.00)
+        self.add_gasto("Mercadona",    "alimentacion", "2025-02-12",  92.30)
+        self.add_gasto("Restaurante",  "ocio",         "2025-03-10",  42.00)
+        self.add_gasto("Seguro Coche", "vehiculo",     "2025-04-01", 350.00)
 
     # ─────────────────────────────────────────────────────────
     # CIERRE DE CONEXIÓN

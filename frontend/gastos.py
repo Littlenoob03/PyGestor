@@ -11,29 +11,17 @@ def GastosView(db: Database, navigate) -> ft.Container:
     year = datetime.now().year
     editing_id = {"val": None}
 
-    g_desc  = text_field("Descripción", "Descripción del gasto")
-    g_fecha = text_field("Fecha (YYYY-MM-DD)", str(date.today()), value=str(date.today()))
-    g_base  = text_field("Base Imponible", "0.00", keyboard_type=ft.KeyboardType.NUMBER)
-    g_iva   = dropdown("IVA %", [("21","21 %"),("10","10 %"),("4","4 %"),("0","0 %")], value="21")
-    g_cat   = dropdown("Categoría", [
+    g_desc    = text_field("Descripción", "Descripción del gasto")
+    g_fecha   = text_field("Fecha (YYYY-MM-DD)", str(date.today()), value=str(date.today()))
+    g_importe = text_field("Importe", "0.00", keyboard_type=ft.KeyboardType.NUMBER)
+    g_cat     = dropdown("Categoría", [
         ("oficina","🖊️ Oficina"), ("software","💻 Software"),
         ("marketing","📢 Marketing"), ("transporte","🚗 Transporte"),
-        ("formacion","📚 Formación"), ("seguro","🛡️ Seguro"), ("otros","📦 Otros"),
-    ], value="software")
-    g_deducible = ft.Checkbox(label="Deducible fiscalmente", value=True)
-    total_text = ft.Text("", size=13, color=COLORS["text_secondary"])
-
-    def recalc(e=None):
-        try:
-            base = float(g_base.value or 0)
-            iva  = base * float(g_iva.value or 0) / 100
-            total_text.value = f"Total a pagar: {fmt(base + iva)}"
-            total_text.update()
-        except Exception:
-            pass
-
-    g_base.on_change = recalc
-    g_iva.on_change  = recalc
+        ("formacion","📚 Formación"), ("seguro","🛡️ Seguro"), 
+        ("alimentacion", "🛒 Alimentación"), ("ocio", "🍿 Ocio"),
+        ("salud", "🏥 Salud"), ("vehiculo", "🚙 Vehículo"),
+        ("otros","📦 Otros"),
+    ], value="otros")
 
     list_col = ft.Column(spacing=0)
 
@@ -44,13 +32,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
             width=480,
             content=ft.Column([
                 ft.Row([g_desc, g_fecha], spacing=12),
-                ft.Row([g_base, g_iva, g_cat], spacing=12),
-                g_deducible,
-                ft.Container(
-                    content=total_text,
-                    bgcolor="#F0FDF4", border_radius=10,
-                    padding=ft.Padding.symmetric(horizontal=14, vertical=10),
-                ),
+                ft.Row([g_importe, g_cat], spacing=12),
             ], spacing=12, tight=True),
         ),
         actions_alignment=ft.MainAxisAlignment.END,
@@ -68,9 +50,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
                 descripcion=g_desc.value,
                 categoria=g_cat.value,
                 fecha=g_fecha.value,
-                base=float(g_base.value or 0),
-                iva_pct=float(g_iva.value or 21),
-                deducible=g_deducible.value,
+                importe=float(g_importe.value or 0),
             )
             if editing_id["val"]:
                 db.update_gasto(editing_id["val"], **data)
@@ -103,9 +83,8 @@ def GastosView(db: Database, navigate) -> ft.Container:
 
         list_col.controls.append(ft.Container(
             content=ft.Row([
-                th("DESCRIPCIÓN", 180), th("CATEGORÍA", 120), th("FECHA", 100),
-                th("BASE", 90), th("IVA", 80), th("TOTAL", 90),
-                th("DEDUCIBLE", 90), th("", 80),
+                th("DESCRIPCIÓN", 220), th("CATEGORÍA", 140), th("FECHA", 100),
+                th("IMPORTE", 100), th("", 80),
             ], spacing=8),
             bgcolor="#F7F8FA",
             padding=ft.Padding.symmetric(horizontal=16, vertical=10),
@@ -135,11 +114,8 @@ def GastosView(db: Database, navigate) -> ft.Container:
                         g_desc.value      = ga.descripcion
                         g_cat.value       = ga.categoria
                         g_fecha.value     = ga.fecha
-                        g_base.value      = str(ga.base)
-                        g_iva.value       = str(int(ga.iva_pct))
-                        g_deducible.value = ga.deducible
+                        g_importe.value   = str(ga.importe)
                         dlg.title = ft.Text("Editar Gasto", weight=ft.FontWeight.BOLD)
-                        recalc()
                         e.page.dialog = dlg
                         dlg.open = True
                         e.page.update()
@@ -187,22 +163,15 @@ def GastosView(db: Database, navigate) -> ft.Container:
 
                 row = ft.Container(
                     content=ft.Row([
-                        cell(g.descripcion, 180),
+                        cell(g.descripcion, 220),
                         ft.Container(
                             content=ft.Text(f"{ico} {lbl}", size=12),
                             bgcolor="#EFF6FF", border_radius=8,
                             padding=ft.Padding.symmetric(horizontal=8, vertical=4),
-                            width=120,
+                            width=140,
                         ),
                         cell(g.fecha, 100, color=COLORS["text_secondary"]),
-                        cell(fmt(g.base),  90),
-                        cell(fmt(g.iva),   80),
-                        cell(fmt(g.total), 90, bold=True),
-                        ft.Container(
-                            content=badge("✓ Sí" if g.deducible else "✗ No",
-                                          "success" if g.deducible else "danger"),
-                            width=90,
-                        ),
+                        cell(fmt(g.importe), 100, bold=True),
                         make_actions(g.id),
                     ], spacing=8),
                     bgcolor=bg,
@@ -242,13 +211,10 @@ def GastosView(db: Database, navigate) -> ft.Container:
             snack(e.page, "Modo Invitado: Inicia sesión para añadir datos.", ok=False)
             return
         editing_id["val"] = None
-        g_desc.value  = ""
-        g_fecha.value = str(date.today())
-        g_base.value  = ""
-        g_iva.value   = "21"
-        g_cat.value   = "software"
-        g_deducible.value = True
-        total_text.value  = ""
+        g_desc.value    = ""
+        g_fecha.value   = str(date.today())
+        g_importe.value = ""
+        g_cat.value     = "otros"
         dlg.title = ft.Text("Nuevo Gasto", weight=ft.FontWeight.BOLD)
         e.page.dialog = dlg
         dlg.open = True
@@ -256,7 +222,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
 
     content = ft.Column([
         ft.Row([
-            section_header("Gastos", "Controla tus gastos deducibles"),
+            section_header("Gastos", "Controla tus gastos personales"),
             btn_primary("Nuevo Gasto", on_click=nuevo_gasto, icon=ft.Icons.ADD),
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         ft.Container(height=16),

@@ -7,60 +7,30 @@ from frontend.styles import (
     badge, section_header, text_field, dropdown, snack, page_wrapper, divider
 )
 
-def FacturasView(db: Database, navigate) -> ft.Container:
+def IngresosView(db: Database, navigate) -> ft.Container:
     year = datetime.now().year
     filtro_estado = {"val": "all"}
     editing_id = {"val": None}
 
     # ── Formulario (Dialog) ────────────────────────────────
-    f_numero   = text_field("Nº Factura", "FAC-2025-001")
-    f_concepto = text_field("Concepto",   "Descripción del servicio")
+    f_origen   = text_field("Fuente / Origen", "Nómina, Bizum, etc.")
+    f_concepto = text_field("Concepto",   "Descripción del ingreso")
     f_fecha    = text_field("Fecha (YYYY-MM-DD)", str(date.today()), value=str(date.today()))
-    f_base     = text_field("Base Imponible", "0.00", keyboard_type=ft.KeyboardType.NUMBER)
-    f_iva      = dropdown("IVA %",  [("21","21 %"),("10","10 %"),("4","4 %"),("0","0 %")], value="21")
-    f_irpf     = dropdown("IRPF %", [("15","15 %"),("7","7 % (nuevo)"),("0","0 %")], value="15")
-    f_estado   = dropdown("Estado", [("pendiente","Pendiente"),("pagado","Pagado")], value="pendiente")
-    f_destinatario = text_field("Destinatario", "Nombre o empresa")
-
-    totales_text = ft.Text("", size=13, color=COLORS["text_secondary"])
-
-    def recalc(e=None):
-        try:
-            base  = float(f_base.value or 0)
-            iva   = base * float(f_iva.value or 0) / 100
-            irpf  = base * float(f_irpf.value or 0) / 100
-            total = base + iva - irpf
-            totales_text.value = (
-                f"IVA: {fmt(iva)}   IRPF: -{fmt(irpf)}   "
-                f"TOTAL: {fmt(total)}"
-            )
-            totales_text.update()
-        except Exception:
-            pass
-
-    f_base.on_change = recalc
-    f_iva.on_change  = recalc
-    f_irpf.on_change = recalc
-    f_irpf.on_change = recalc
+    f_importe  = text_field("Importe", "0.00", keyboard_type=ft.KeyboardType.NUMBER)
+    f_estado   = dropdown("Estado", [("pendiente","Pendiente"),("cobrado","Cobrado")], value="cobrado")
 
     list_col = ft.Column(spacing=0)
     page_ref = ft.Ref[ft.Page]()
 
     dlg = ft.AlertDialog(
         modal=True,
-        title=ft.Text("Nueva Factura", weight=ft.FontWeight.BOLD),
+        title=ft.Text("Nuevo Ingreso", weight=ft.FontWeight.BOLD),
         content=ft.Container(
             width=520,
             content=ft.Column([
-                ft.Row([f_numero, f_fecha], spacing=12),
-                f_destinatario,
+                ft.Row([f_origen, f_fecha], spacing=12),
                 f_concepto,
-                ft.Row([f_base, f_iva, f_irpf, f_estado], spacing=12),
-                ft.Container(
-                    content=totales_text,
-                    bgcolor="#EFF6FF", border_radius=10,
-                    padding=ft.Padding.symmetric(horizontal=14, vertical=10),
-                ),
+                ft.Row([f_importe, f_estado], spacing=12),
             ], spacing=12, tight=True),
         ),
         actions_alignment=ft.MainAxisAlignment.END,
@@ -80,21 +50,18 @@ def FacturasView(db: Database, navigate) -> ft.Container:
         page = e.page
         try:
             data = dict(
-                numero=f_numero.value,
-                destinatario=f_destinatario.value,
+                origen=f_origen.value,
                 concepto=f_concepto.value,
                 fecha=f_fecha.value,
-                base=float(f_base.value or 0),
-                iva_pct=float(f_iva.value or 21),
-                irpf_pct=float(f_irpf.value or 15),
+                importe=float(f_importe.value or 0),
                 estado=f_estado.value,
             )
             if editing_id["val"]:
-                db.update_factura(editing_id["val"], **data)
-                snack(page, "Factura actualizada ✅")
+                db.update_ingreso(editing_id["val"], **data)
+                snack(page, "Ingreso actualizado ✅")
             else:
-                db.add_factura(**data)
-                snack(page, "Factura creada ✅")
+                db.add_ingreso(**data)
+                snack(page, "Ingreso creado ✅")
             dlg.open = False
             editing_id["val"] = None
             refresh(page)
@@ -112,9 +79,9 @@ def FacturasView(db: Database, navigate) -> ft.Container:
 
     # ── Tabla ──────────────────────────────────────────────
     def render_list():
-        facts = [f for f in db.facturas_by_year(year)
-                 if filtro_estado["val"] == "all" or f.estado == filtro_estado["val"]]
-        facts.sort(key=lambda f: f.fecha, reverse=True)
+        ings = [i for i in db.ingresos_by_year(year)
+                 if filtro_estado["val"] == "all" or i.estado == filtro_estado["val"]]
+        ings.sort(key=lambda x: x.fecha, reverse=True)
 
         list_col.controls.clear()
 
@@ -128,71 +95,65 @@ def FacturasView(db: Database, navigate) -> ft.Container:
 
         list_col.controls.append(ft.Container(
             content=ft.Row([
-                th("Nº FACTURA", 120), th("DESTINATARIO", 160), th("FECHA", 100),
-                th("BASE", 90), th("IVA", 80), th("IRPF", 80),
-                th("TOTAL", 100), th("ESTADO", 90), th("", 80),
+                th("ORIGEN", 160), th("CONCEPTO", 200), th("FECHA", 100),
+                th("IMPORTE", 100), th("ESTADO", 90), th("", 100),
             ], spacing=8),
             bgcolor="#F7F8FA", padding=ft.Padding.symmetric(horizontal=16, vertical=10),
             border_radius=ft.BorderRadius.only(top_left=12, top_right=12),
         ))
 
-        if not facts:
+        if not ings:
             list_col.controls.append(ft.Container(
                 content=ft.Column([
-                    ft.Text("🧾", size=40),
-                    ft.Text("No hay facturas", size=15, color=COLORS["text_muted"]),
+                    ft.Text("💰", size=40),
+                    ft.Text("No hay ingresos", size=15, color=COLORS["text_muted"]),
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8),
                 alignment=ft.Alignment.CENTER,
                 height=200,
             ))
         else:
-            for idx, f in enumerate(facts):
-                nombre = f.destinatario if f.destinatario else "—"
-                bg   = "white" if idx % 2 == 0 else "#FAFAFA"
+            for idx, i in enumerate(ings):
+                bg = "white" if idx % 2 == 0 else "#FAFAFA"
 
-                def make_actions(fid):
-                    def on_edit(e, fid=fid):
+                def make_actions(iid):
+                    def on_edit(e, iid=iid):
                         if getattr(e.page, "is_guest", False):
                             snack(e.page, "Modo Invitado: Inicia sesión para editar.", ok=False)
                             return
-                        fa = db.get_factura(fid)
-                        editing_id["val"] = fid
-                        f_numero.value   = fa.numero
-                        f_concepto.value = fa.concepto
-                        f_fecha.value    = fa.fecha
-                        f_base.value     = str(fa.base)
-                        f_iva.value      = str(int(fa.iva_pct))
-                        f_irpf.value     = str(int(fa.irpf_pct))
-                        f_estado.value   = fa.estado
-                        f_destinatario.value = fa.destinatario
-                        dlg.title        = ft.Text("Editar Factura", weight=ft.FontWeight.BOLD)
-                        recalc()
+                        ing = db.get_ingreso(iid)
+                        editing_id["val"] = iid
+                        f_origen.value   = ing.origen
+                        f_concepto.value = ing.concepto
+                        f_fecha.value    = ing.fecha
+                        f_importe.value  = str(ing.importe)
+                        f_estado.value   = ing.estado
+                        dlg.title        = ft.Text("Editar Ingreso", weight=ft.FontWeight.BOLD)
                         open_dlg(e.page)
 
-                    def on_toggle(e, fid=fid):
+                    def on_toggle(e, iid=iid):
                         if getattr(e.page, "is_guest", False):
                             snack(e.page, "Modo Invitado: Inicia sesión para modificar.", ok=False)
                             return
-                        fa = db.get_factura(fid)
-                        new_estado = "pagado" if fa.estado == "pendiente" else "pendiente"
-                        db.update_factura(fid, estado=new_estado)
+                        ing = db.get_ingreso(iid)
+                        new_estado = "cobrado" if ing.estado == "pendiente" else "pendiente"
+                        db.update_ingreso(iid, estado=new_estado)
                         snack(e.page, f"Marcado como {new_estado}")
                         refresh(e.page)
 
-                    def on_delete(e, fid=fid):
+                    def on_delete(e, iid=iid):
                         if getattr(e.page, "is_guest", False):
                             snack(e.page, "Modo Invitado: Inicia sesión para borrar.", ok=False)
                             return
                         def confirm(ev):
-                            db.delete_factura(fid)
+                            db.delete_ingreso(iid)
                             ev.page.dialog.open = False
-                            snack(ev.page, "Factura eliminada")
+                            snack(ev.page, "Ingreso eliminado")
                             refresh(ev.page)
                         def cancel(ev):
                             ev.page.dialog.open = False
                             ev.page.update()
                         e.page.dialog = ft.AlertDialog(
-                            title=ft.Text("¿Eliminar factura?"),
+                            title=ft.Text("¿Eliminar ingreso?"),
                             content=ft.Text("Esta acción no se puede deshacer."),
                             actions=[
                                 btn_secondary("Cancelar", on_click=cancel),
@@ -224,19 +185,16 @@ def FacturasView(db: Database, navigate) -> ft.Container:
 
                 row = ft.Container(
                     content=ft.Row([
-                        cell(f.numero, 120, bold=True, color=COLORS["primary"]),
-                        cell(nombre, 160),
-                        cell(f.fecha, 100, color=COLORS["text_secondary"]),
-                        cell(fmt(f.base), 90),
-                        cell(fmt(f.iva),  80),
-                        cell(f"-{fmt(f.irpf)}", 80, color=COLORS["danger"]),
-                        cell(fmt(f.total), 100, bold=True),
+                        cell(i.origen, 160, bold=True, color=COLORS["primary"]),
+                        cell(i.concepto, 200),
+                        cell(i.fecha, 100, color=COLORS["text_secondary"]),
+                        cell(fmt(i.importe), 100, bold=True),
                         ft.Container(
-                            content=badge("Pagado" if f.estado=="pagado" else "Pendiente",
-                                          "success" if f.estado=="pagado" else "warning"),
+                            content=badge("Cobrado" if i.estado=="cobrado" else "Pendiente",
+                                          "success" if i.estado=="cobrado" else "warning"),
                             width=90,
                         ),
-                        make_actions(f.id),
+                        make_actions(i.id),
                     ], spacing=8),
                     bgcolor=bg,
                     padding=ft.Padding.symmetric(horizontal=16, vertical=12),
@@ -257,32 +215,28 @@ def FacturasView(db: Database, navigate) -> ft.Container:
                              ))
 
     tabs = ft.Row([
-        make_tab("Todas", "all"),
-        make_tab("Pagadas", "pagado"),
+        make_tab("Todos", "all"),
+        make_tab("Cobrados", "cobrado"),
         make_tab("Pendientes", "pendiente"),
     ])
 
-    def nueva_factura(e):
+    def nuevo_ingreso(e):
         if getattr(e.page, "is_guest", False):
             snack(e.page, "Modo Invitado: Inicia sesión para añadir datos.", ok=False)
             return
         editing_id["val"] = None
-        f_numero.value  = f"FAC-{year}-{str(len(db.facturas)+1).zfill(3)}"
+        f_origen.value   = ""
         f_concepto.value = ""
         f_fecha.value    = str(date.today())
-        f_base.value     = ""
-        f_iva.value      = "21"
-        f_irpf.value     = "15"
-        f_estado.value   = "pendiente"
-        f_destinatario.value = ""
-        dlg.title = ft.Text("Nueva Factura", weight=ft.FontWeight.BOLD)
-        totales_text.value = ""
+        f_importe.value  = ""
+        f_estado.value   = "cobrado"
+        dlg.title = ft.Text("Nuevo Ingreso", weight=ft.FontWeight.BOLD)
         open_dlg(e.page)
 
     content = ft.Column([
         ft.Row([
-            section_header("Facturas", "Gestiona todas tus facturas emitidas"),
-            btn_primary("Nueva Factura", on_click=nueva_factura, icon=ft.Icons.ADD),
+            section_header("Ingresos", "Gestiona todas tus fuentes de ingresos"),
+            btn_primary("Nuevo Ingreso", on_click=nuevo_ingreso, icon=ft.Icons.ADD),
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         ft.Container(height=16),
         tabs,
