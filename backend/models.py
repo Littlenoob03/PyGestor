@@ -10,6 +10,7 @@ class Ingreso:
     fecha: str          # "YYYY-MM-DD"
     importe: float
     estado: str         # "pendiente" | "cobrado"
+    usuario_id: int = 1
 
     @property
     def total(self) -> float:
@@ -34,6 +35,7 @@ class Gasto:
     categoria: str
     fecha: str          # "YYYY-MM-DD"
     importe: float
+    usuario_id: int = 1
 
     @property
     def total(self) -> float:

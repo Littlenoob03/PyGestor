@@ -8,6 +8,7 @@ DB_FILE = "pygestor.db"
 
 class Database:
     def __init__(self):
+        self.current_user_id = None
         self.conn = sqlite3.connect(DB_FILE, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row   # acceso por nombre de columna
         self._create_tables()
@@ -46,6 +47,17 @@ class Database:
                 importe     REAL    NOT NULL
             )
         """)
+
+        # Add usuario_id columns if they don't exist
+        cur.execute("PRAGMA table_info(ingresos)")
+        columns = [row[1] for row in cur.fetchall()]
+        if "usuario_id" not in columns:
+            cur.execute("ALTER TABLE ingresos ADD COLUMN usuario_id INTEGER NOT NULL DEFAULT 1")
+
+        cur.execute("PRAGMA table_info(gastos)")
+        columns = [row[1] for row in cur.fetchall()]
+        if "usuario_id" not in columns:
+            cur.execute("ALTER TABLE gastos ADD COLUMN usuario_id INTEGER NOT NULL DEFAULT 1")
 
         self.conn.commit()
 
@@ -88,6 +100,7 @@ class Database:
             fecha=row["fecha"],
             importe=row["importe"],
             estado=row["estado"],
+            usuario_id=row["usuario_id"] if "usuario_id" in row.keys() else 1,
         )
 
     def _row_to_gasto(self, row) -> Gasto:
@@ -97,6 +110,7 @@ class Database:
             categoria=row["categoria"],
             fecha=row["fecha"],
             importe=row["importe"],
+            usuario_id=row["usuario_id"] if "usuario_id" in row.keys() else 1,
         )
 
     # ─────────────────────────────────────────────────────────
@@ -104,11 +118,12 @@ class Database:
     # ─────────────────────────────────────────────────────────
     def add_ingreso(self, origen, concepto, fecha, importe, estado="cobrado") -> Ingreso:
         cur = self.conn.cursor()
+        uid = self.current_user_id if self.current_user_id is not None else -1
         cur.execute(
             "INSERT INTO ingresos "
-            "(origen, concepto, fecha, importe, estado) "
-            "VALUES (?, ?, ?, ?, ?)",
-            (origen, concepto, fecha, importe, estado),
+            "(origen, concepto, fecha, importe, estado, usuario_id) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (origen, concepto, fecha, importe, estado, uid),
         )
         self.conn.commit()
         return self.get_ingreso(cur.lastrowid)
@@ -119,38 +134,44 @@ class Database:
         if not fields:
             return self.get_ingreso(id)
         sets = ", ".join(f"{k} = ?" for k in fields)
+        uid = self.current_user_id if self.current_user_id is not None else -1
         self.conn.execute(
-            f"UPDATE ingresos SET {sets} WHERE id = ?",
-            (*fields.values(), id),
+            f"UPDATE ingresos SET {sets} WHERE id = ? AND usuario_id = ?",
+            (*fields.values(), id, uid),
         )
         self.conn.commit()
         return self.get_ingreso(id)
 
     def delete_ingreso(self, id: int):
-        self.conn.execute("DELETE FROM ingresos WHERE id = ?", (id,))
+        uid = self.current_user_id if self.current_user_id is not None else -1
+        self.conn.execute("DELETE FROM ingresos WHERE id = ? AND usuario_id = ?", (id, uid))
         self.conn.commit()
 
     def get_ingreso(self, id: int) -> Optional[Ingreso]:
+        uid = self.current_user_id if self.current_user_id is not None else -1
         row = self.conn.execute(
-            "SELECT * FROM ingresos WHERE id = ?", (id,)
+            "SELECT * FROM ingresos WHERE id = ? AND usuario_id = ?", (id, uid)
         ).fetchone()
         return self._row_to_ingreso(row) if row else None
 
     @property
     def ingresos(self) -> List[Ingreso]:
+        uid = self.current_user_id if self.current_user_id is not None else -1
         rows = self.conn.execute(
-            "SELECT * FROM ingresos ORDER BY fecha DESC"
+            "SELECT * FROM ingresos WHERE usuario_id = ? ORDER BY fecha DESC", (uid,)
         ).fetchall()
         return [self._row_to_ingreso(r) for r in rows]
 
     def ingresos_by_year(self, year: int) -> List[Ingreso]:
+        uid = self.current_user_id if self.current_user_id is not None else -1
         rows = self.conn.execute(
-            "SELECT * FROM ingresos WHERE strftime('%Y', fecha) = ? ORDER BY fecha DESC",
-            (str(year),),
+            "SELECT * FROM ingresos WHERE strftime('%Y', fecha) = ? AND usuario_id = ? ORDER BY fecha DESC",
+            (str(year), uid),
         ).fetchall()
         return [self._row_to_ingreso(r) for r in rows]
 
     def ingresos_by_trimestre(self, year: int, t: int) -> List[Ingreso]:
+        uid = self.current_user_id if self.current_user_id is not None else -1
         month_ranges = {1: ("01","03"), 2: ("04","06"),
                         3: ("07","09"), 4: ("10","12")}
         m_ini, m_fin = month_ranges[t]
@@ -158,8 +179,9 @@ class Database:
             "SELECT * FROM ingresos "
             "WHERE strftime('%Y', fecha) = ? "
             "  AND strftime('%m', fecha) BETWEEN ? AND ? "
+            "  AND usuario_id = ? "
             "ORDER BY fecha DESC",
-            (str(year), m_ini, m_fin),
+            (str(year), m_ini, m_fin, uid),
         ).fetchall()
         return [self._row_to_ingreso(r) for r in rows]
 
@@ -168,10 +190,11 @@ class Database:
     # ─────────────────────────────────────────────────────────
     def add_gasto(self, descripcion, categoria, fecha, importe) -> Gasto:
         cur = self.conn.cursor()
+        uid = self.current_user_id if self.current_user_id is not None else -1
         cur.execute(
-            "INSERT INTO gastos (descripcion, categoria, fecha, importe) "
-            "VALUES (?, ?, ?, ?)",
-            (descripcion, categoria, fecha, importe),
+            "INSERT INTO gastos (descripcion, categoria, fecha, importe, usuario_id) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (descripcion, categoria, fecha, importe, uid),
         )
         self.conn.commit()
         return self.get_gasto(cur.lastrowid)
@@ -182,38 +205,44 @@ class Database:
         if not fields:
             return self.get_gasto(id)
         sets = ", ".join(f"{k} = ?" for k in fields)
+        uid = self.current_user_id if self.current_user_id is not None else -1
         self.conn.execute(
-            f"UPDATE gastos SET {sets} WHERE id = ?",
-            (*fields.values(), id),
+            f"UPDATE gastos SET {sets} WHERE id = ? AND usuario_id = ?",
+            (*fields.values(), id, uid),
         )
         self.conn.commit()
         return self.get_gasto(id)
 
     def delete_gasto(self, id: int):
-        self.conn.execute("DELETE FROM gastos WHERE id = ?", (id,))
+        uid = self.current_user_id if self.current_user_id is not None else -1
+        self.conn.execute("DELETE FROM gastos WHERE id = ? AND usuario_id = ?", (id, uid))
         self.conn.commit()
 
     def get_gasto(self, id: int) -> Optional[Gasto]:
+        uid = self.current_user_id if self.current_user_id is not None else -1
         row = self.conn.execute(
-            "SELECT * FROM gastos WHERE id = ?", (id,)
+            "SELECT * FROM gastos WHERE id = ? AND usuario_id = ?", (id, uid)
         ).fetchone()
         return self._row_to_gasto(row) if row else None
 
     @property
     def gastos(self) -> List[Gasto]:
+        uid = self.current_user_id if self.current_user_id is not None else -1
         rows = self.conn.execute(
-            "SELECT * FROM gastos ORDER BY fecha DESC"
+            "SELECT * FROM gastos WHERE usuario_id = ? ORDER BY fecha DESC", (uid,)
         ).fetchall()
         return [self._row_to_gasto(r) for r in rows]
 
     def gastos_by_year(self, year: int) -> List[Gasto]:
+        uid = self.current_user_id if self.current_user_id is not None else -1
         rows = self.conn.execute(
-            "SELECT * FROM gastos WHERE strftime('%Y', fecha) = ? ORDER BY fecha DESC",
-            (str(year),),
+            "SELECT * FROM gastos WHERE strftime('%Y', fecha) = ? AND usuario_id = ? ORDER BY fecha DESC",
+            (str(year), uid),
         ).fetchall()
         return [self._row_to_gasto(r) for r in rows]
 
     def gastos_by_trimestre(self, year: int, t: int) -> List[Gasto]:
+        uid = self.current_user_id if self.current_user_id is not None else -1
         month_ranges = {1: ("01","03"), 2: ("04","06"),
                         3: ("07","09"), 4: ("10","12")}
         m_ini, m_fin = month_ranges[t]
@@ -221,8 +250,9 @@ class Database:
             "SELECT * FROM gastos "
             "WHERE strftime('%Y', fecha) = ? "
             "  AND strftime('%m', fecha) BETWEEN ? AND ? "
+            "  AND usuario_id = ? "
             "ORDER BY fecha DESC",
-            (str(year), m_ini, m_fin),
+            (str(year), m_ini, m_fin, uid),
         ).fetchall()
         return [self._row_to_gasto(r) for r in rows]
 

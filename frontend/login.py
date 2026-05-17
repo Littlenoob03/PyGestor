@@ -60,18 +60,15 @@ def LoginView(db, on_login) -> ft.Container:
             success = db.add_usuario(username.value, password.value)
             if success:
                 snack(e.page, "Cuenta creada con éxito. Iniciando sesión...", ok=True)
-                on_login(is_guest=False)
+                user = db.get_usuario(username.value, password.value)
+                on_login(is_guest=False, user_id=user["id"] if user else None)
             else:
                 snack(e.page, "Ese nombre de usuario ya existe.", ok=False)
         else:
             # Login
-            if username.value == "admin" and password.value == "admin":
-                on_login(is_guest=False)
-                return
-            
             user = db.get_usuario(username.value, password.value)
             if user:
-                on_login(is_guest=False)
+                on_login(is_guest=False, user_id=user["id"])
             else:
                 snack(e.page, "Usuario o contraseña incorrectos", ok=False)
 
@@ -95,7 +92,7 @@ def LoginView(db, on_login) -> ft.Container:
         e.page.update()
 
     def handle_guest(e):
-        on_login(is_guest=True)
+        on_login(is_guest=True, user_id=None)
 
     # ── Logo ───────────────────────────────────────────────────
     logo = ft.Container(

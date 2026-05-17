@@ -157,8 +157,9 @@ def main(page: ft.Page):
         ),
     ], expand=True, spacing=0, vertical_alignment=ft.CrossAxisAlignment.START)
 
-    def on_login(is_guest: bool):
+    def on_login(is_guest: bool, user_id: int = None):
         page.is_guest = is_guest
+        db.current_user_id = user_id
         page.controls.clear()
         page.add(main_layout)
         navigate("dashboard")
