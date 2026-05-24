@@ -48,7 +48,7 @@ class Database:
             )
         """)
 
-        # Add usuario_id columns if they don't exist
+        # Add usuario_id columns to ingresos and gastos if they don't exist
         cur.execute("PRAGMA table_info(ingresos)")
         columns = [row[1] for row in cur.fetchall()]
         if "usuario_id" not in columns:
@@ -58,6 +58,18 @@ class Database:
         columns = [row[1] for row in cur.fetchall()]
         if "usuario_id" not in columns:
             cur.execute("ALTER TABLE gastos ADD COLUMN usuario_id INTEGER NOT NULL DEFAULT 1")
+            
+        # Add new columns to usuarios if they don't exist
+        cur.execute("PRAGMA table_info(usuarios)")
+        user_cols = [row[1] for row in cur.fetchall()]
+        if "email" not in user_cols:
+            cur.execute("ALTER TABLE usuarios ADD COLUMN email TEXT DEFAULT ''")
+        if "telefono" not in user_cols:
+            cur.execute("ALTER TABLE usuarios ADD COLUMN telefono TEXT DEFAULT ''")
+        if "foto" not in user_cols:
+            cur.execute("ALTER TABLE usuarios ADD COLUMN foto TEXT DEFAULT ''")
+        if "plan" not in user_cols:
+            cur.execute("ALTER TABLE usuarios ADD COLUMN plan TEXT DEFAULT 'Plan Personal'")
 
         self.conn.commit()
 
@@ -71,6 +83,12 @@ class Database:
         ).fetchone()
         return dict(row) if row else None
 
+    def get_usuario_by_id(self, id: int):
+        row = self.conn.execute(
+            "SELECT * FROM usuarios WHERE id = ?", (id,)
+        ).fetchone()
+        return dict(row) if row else None
+
     def get_usuario_by_username(self, username):
         row = self.conn.execute(
             "SELECT * FROM usuarios WHERE username = ?",
@@ -81,13 +99,26 @@ class Database:
     def add_usuario(self, username, password):
         try:
             self.conn.execute(
-                "INSERT INTO usuarios (username, password) VALUES (?, ?)",
+                "INSERT INTO usuarios (username, password, email, telefono, foto, plan) VALUES (?, ?, '', '', '', 'Plan Personal')",
                 (username, password)
             )
             self.conn.commit()
             return True
         except sqlite3.IntegrityError:
             return False # Usuario ya existe
+
+    def update_usuario(self, id: int, **kwargs):
+        allowed = {"username", "password", "email", "telefono", "foto", "plan"}
+        fields  = {k: v for k, v in kwargs.items() if k in allowed}
+        if not fields:
+            return self.get_usuario_by_id(id)
+        sets = ", ".join(f"{k} = ?" for k in fields)
+        self.conn.execute(
+            f"UPDATE usuarios SET {sets} WHERE id = ?",
+            (*fields.values(), id),
+        )
+        self.conn.commit()
+        return self.get_usuario_by_id(id)
 
     # ─────────────────────────────────────────────────────────
     # HELPERS INTERNOS

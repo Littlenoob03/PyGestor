@@ -6,6 +6,7 @@ from frontend.informes import InformesView
 from frontend.formulario_ingreso import FormularioIngresoView
 from frontend.formulario_gasto import FormularioGastoView
 from frontend.login import LoginView
+from frontend.perfil import PerfilView
 from backend.database import Database
 
 def main(page: ft.Page):
@@ -46,6 +47,7 @@ def main(page: ft.Page):
             "informes":  lambda: InformesView(db, navigate),
             "form_ingreso": lambda: FormularioIngresoView(db, navigate, **kwargs),
             "form_gasto":   lambda: FormularioGastoView(db, navigate, **kwargs),
+            "perfil":       lambda: PerfilView(db, navigate, refresh_sidebar),
         }
         content_area.content = views.get(view_name, views["dashboard"])()
         page.update()
@@ -118,33 +120,65 @@ def main(page: ft.Page):
             ),
             ft.Container(expand=True),
             ft.Divider(color=ft.Colors.with_opacity(0.15, "white"), height=1),
-            # User info
-            ft.Container(
-                content=ft.Row([
-                    ft.Container(
-                        content=ft.Text("US", size=13, weight=ft.FontWeight.BOLD, color="white"),
-                        width=36, height=36,
-                        bgcolor=ft.Colors.with_opacity(0.25, "white"),
-                        border_radius=18,
-                        alignment=ft.Alignment(0, 0),
-                    ),
-                    ft.Column([
-                        ft.Text("Usuario", size=13, weight=ft.FontWeight.W_500, color="white"),
-                        ft.Text("Plan Personal", size=11, color="#A5B4FC"),
-                    ], spacing=0, expand=True),
-                    ft.PopupMenuButton(
-                        icon=ft.Icons.MORE_VERT,
-                        icon_color=ft.Colors.with_opacity(0.7, "white"),
-                        items=[
-                            ft.PopupMenuItem(content=ft.Text("Mi Perfil"), icon=ft.Icons.PERSON_OUTLINE),
-                            ft.PopupMenuItem(content=ft.Text("Cerrar Sesión"), icon=ft.Icons.LOGOUT, on_click=lambda _: logout()),
-                        ]
-                    ),
-                ], spacing=10, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                padding=ft.Padding.symmetric(horizontal=12, vertical=12),
-            ),
         ], spacing=0, expand=True),
     )
+
+    sidebar_initials = ft.Text("US", size=13, weight=ft.FontWeight.BOLD, color="white")
+    sidebar_avatar_container = ft.Container(
+        content=sidebar_initials,
+        width=36, height=36,
+        bgcolor=ft.Colors.with_opacity(0.25, "white"),
+        border_radius=18,
+        alignment=ft.Alignment(0, 0),
+    )
+    sidebar_image = ft.Image(src="", width=36, height=36, fit=ft.BoxFit.COVER, border_radius=18, visible=False)
+    
+    sidebar_username = ft.Text("Usuario", size=13, weight=ft.FontWeight.W_500, color="white")
+    sidebar_plan = ft.Text("Plan Personal", size=11, color="#A5B4FC")
+
+    def refresh_sidebar():
+        if page.is_guest or not db.current_user_id:
+            sidebar_initials.value = "IN"
+            sidebar_username.value = "Invitado"
+            sidebar_plan.value = "Sin cuenta"
+            sidebar_avatar_container.visible = True
+            sidebar_image.visible = False
+        else:
+            u = db.get_usuario_by_id(db.current_user_id)
+            if u:
+                sidebar_username.value = u.get("username", "Usuario")
+                sidebar_plan.value = u.get("plan", "Plan Personal")
+                if u.get("foto"):
+                    sidebar_image.src = f"imagenes/{u.get('foto')}"
+                    sidebar_image.visible = True
+                    sidebar_avatar_container.visible = False
+                else:
+                    sidebar_initials.value = sidebar_username.value[:2].upper()
+                    sidebar_image.visible = False
+                    sidebar_avatar_container.visible = True
+        page.update()
+
+    # User info
+    ft_user_info = ft.Container(
+        content=ft.Row([
+            ft.Stack([sidebar_avatar_container, sidebar_image]),
+            ft.Column([
+                sidebar_username,
+                sidebar_plan,
+            ], spacing=0, expand=True),
+            ft.PopupMenuButton(
+                icon=ft.Icons.MORE_VERT,
+                icon_color=ft.Colors.with_opacity(0.7, "white"),
+                items=[
+                    ft.PopupMenuItem(content=ft.Text("Mi Perfil"), icon=ft.Icons.PERSON_OUTLINE, on_click=lambda _: navigate("perfil")),
+                    ft.PopupMenuItem(content=ft.Text("Cerrar Sesión"), icon=ft.Icons.LOGOUT, on_click=lambda _: logout()),
+                ]
+            ),
+        ], spacing=10, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+        padding=ft.Padding.symmetric(horizontal=12, vertical=12),
+    )
+
+    sidebar.content.controls.append(ft_user_info)
 
     # ── Layout principal ───────────────────────────────────
     main_layout = ft.Row([
@@ -160,6 +194,7 @@ def main(page: ft.Page):
     def on_login(is_guest: bool, user_id: int = None):
         page.is_guest = is_guest
         db.current_user_id = user_id
+        refresh_sidebar()
         page.controls.clear()
         page.add(main_layout)
         navigate("dashboard")
