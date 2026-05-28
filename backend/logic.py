@@ -2,7 +2,6 @@ from typing import List, Dict, Tuple
 from backend.models import Ingreso, Gasto
 
 def fmt(n: float) -> str:
-    """Formatea un número como moneda española."""
     return f"{n:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
 
 def calcular_resumen(ingresos: List[Ingreso], gastos: List[Gasto]) -> Dict:

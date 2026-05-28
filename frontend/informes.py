@@ -17,7 +17,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
     ingresos = db.ingresos_by_year(year)
     gastos   = db.gastos_by_year(year)
 
-    # ── Resumen anual ──────────────────────────────────────
+    #RESUMEN ANUAL
     total_ingresos = sum(i.importe for i in ingresos)
     total_gastos_v = sum(g.importe for g in gastos)
     beneficio_neto = total_ingresos - total_gastos_v
@@ -39,7 +39,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
         ], spacing=0),
     )
 
-    # ── BarChart – Ingresos vs Gastos Mensuales ────────────────────
+    #GRAFICO INGRESOS VS GASTOS ( BARRAS )
     ing_mes  = ingresos_por_mes(ingresos)
     gast_mes = gastos_por_mes(gastos)
     cl_b64 = bar_chart_ingresos_gastos(ing_mes, gast_mes, MESES, width_px=1000, height_px=350)
@@ -55,7 +55,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
         expand=True,
     )
 
-    # ── PieChart (donut) – Gastos por categoría ────────────
+    #GRAFICO GASTOS POR CATEGORIA (DONUT)
     por_cat  = gastos_por_categoria(gastos)
     donut_b64 = donut_chart_gastos(por_cat, CAT_LABELS,
                                     width_px=600, height_px=350)
@@ -71,7 +71,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
         expand=True,
     )
 
-    # ── BarChart agrupado – Comparativa trimestral ─────────
+    #GRAFICO COMPARATIVA TRIMESTRAL (BARRAS)
     trimestres = [calcular_trimestre(ingresos, gastos, t) for t in [1, 2, 3, 4]]
     trim_b64 = bar_chart_trimestral(trimestres, width_px=1200, height_px=400)
 

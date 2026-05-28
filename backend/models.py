@@ -5,11 +5,11 @@ from typing import Optional
 @dataclass
 class Ingreso:
     id: int
-    origen: str         # Antes 'destinatario'
+    origen: str         
     concepto: str
-    fecha: str          # "YYYY-MM-DD"
+    fecha: str          
     importe: float
-    estado: str         # "pendiente" | "cobrado"
+    estado: str        
     usuario_id: int = 1
 
     @property
@@ -33,7 +33,7 @@ class Gasto:
     id: int
     descripcion: str
     categoria: str
-    fecha: str          # "YYYY-MM-DD"
+    fecha: str          
     importe: float
     usuario_id: int = 1
 

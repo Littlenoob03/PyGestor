@@ -8,7 +8,7 @@ from frontend.styles import (
 
 def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
     
-    # Referencias de los campos
+    #CAMPOS DE GASTOS
     g_desc    = text_field("Descripción", "Descripción del gasto")
     g_fecha   = text_field("Fecha (YYYY-MM-DD)", str(date.today()), value=str(date.today()))
     g_importe = text_field("Importe", "0.00", keyboard_type=ft.KeyboardType.NUMBER)

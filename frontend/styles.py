@@ -1,7 +1,3 @@
-"""
-Paleta de colores, constantes de diseño y
-helpers de componentes reutilizables para GestorPro.
-"""
 import flet as ft
 
 # ── Colores ────────────────────────────────────────────────
@@ -131,7 +127,6 @@ def gradient_stat_card(title: str, value: str, subtitle: str,
 
 
 def stat_card(title, value, subtitle, color, icon):
-    """Compatibilidad con código existente – delega a gradient_stat_card."""
     return gradient_stat_card(title, value, subtitle, color, color)
 
 
@@ -195,7 +190,6 @@ def btn_secondary(text, on_click=None, icon=None, width=None):
 
 
 def badge(text: str, kind: str = "default") -> ft.Container:
-    """kind: 'success' | 'danger' | 'warning' | 'info' | 'default'"""
     palettes = {
         "success": (COLORS["success_bg"],  COLORS["success_text"]),
         "danger":  (COLORS["danger_bg"],   COLORS["danger_text"]),

@@ -20,7 +20,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
     gastos   = db.gastos_by_year(year)
     res      = calcular_resumen(ingresos, gastos)
 
-    # ── KPI Cards con gradiente ─────────────────────────────
+    #TARJETAS DEL DASHBOARD (INGRESOS, GASTOS Y AHORRO NETO)
     kpi_data = [
         ("Ingresos Totales",  fmt(res["total_ingresos"]), "Fuentes de ingreso",
          GRADIENTS[0], ft.Icons.TRENDING_UP),
@@ -34,7 +34,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
         for t, v, s, (ga, gb), ic in kpi_data
     ], spacing=16)
 
-    # ── LineChart – Evolución mensual ──────────────────────
+    #GRAFICO DE EVOLUCION MENSUAL
     ing_mes  = ingresos_por_mes(ingresos)
     gast_mes = gastos_por_mes(gastos)
 
@@ -61,7 +61,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
         ], spacing=0, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
     )
 
-    # ── PieChart (donut) – Gastos por categoría ────────────
+    #GRAFICO DE GASTOS POR CATEGORIA (DONUT)
     por_cat  = gastos_por_categoria(gastos)
     donut_b64 = donut_chart_gastos(por_cat, CAT_LABELS,
                                     width_px=600, height_px=350)
@@ -77,7 +77,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
         ], spacing=0, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
     )
 
-    # ── Últimos Ingresos ───────────────────────────────────
+    #ULTIMOS INGRESOS
     ultimas = sorted(db.ingresos, key=lambda i: i.fecha, reverse=True)[:5]
 
     def ingreso_row(i):

@@ -5,7 +5,6 @@ def LoginView(db, on_login) -> ft.Container:
     
     is_register_mode = [False]
     
-    # ── Inputs ─────────────────────────────────────────────────────────────
     username = ft.TextField(
         label="Usuario",
         prefix_icon=ft.Icons.PERSON_OUTLINE,
@@ -95,7 +94,7 @@ def LoginView(db, on_login) -> ft.Container:
             else:
                 snack(e.page, "Ese nombre de usuario ya existe.", ok=False)
         else:
-            # Login
+            #LOGIN
             user = db.get_usuario(username.value, password.value)
             if user:
                 on_login(user_id=user["id"])
@@ -123,7 +122,7 @@ def LoginView(db, on_login) -> ft.Container:
         
         e.page.update()
 
-    # ── Logo ───────────────────────────────────────────────────
+    #LOGO 
     logo = ft.Container(
         content=ft.Column([
             ft.Image(src="Logo.png", width=120, height=120, fit=ft.BoxFit.CONTAIN),
@@ -147,7 +146,7 @@ def LoginView(db, on_login) -> ft.Container:
         )
     )
 
-    # ── Tarjeta de Login ───────────────────────────────────────────────────
+    #TARJETA DE LOGIN
     card = ft.Container(
         content=ft.Column([
             logo,
@@ -183,5 +182,5 @@ def LoginView(db, on_login) -> ft.Container:
         content=card,
         expand=True,
         bgcolor=COLORS["bg"],
-        alignment=ft.Alignment(0, 0), # Centrado absoluto
+        alignment=ft.Alignment(0, 0),
     )

@@ -17,7 +17,7 @@ def IngresosView(db: Database, navigate) -> ft.Container:
         render_list()
         page.update()
 
-    # ── Tabla ──────────────────────────────────────────────
+    #TABLA DE INGRESOS
     def render_list():
         ings = [i for i in db.ingresos_by_year(year)
                  if filtro_estado["val"] == "all" or i.estado == filtro_estado["val"]]
@@ -25,7 +25,6 @@ def IngresosView(db: Database, navigate) -> ft.Container:
 
         list_col.controls.clear()
 
-        # Cabecera
         def th(t):
             return ft.Container(
                 content=ft.Text(t, size=11, weight=ft.FontWeight.W_600,
@@ -69,7 +68,6 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                         refresh(e.page)
 
                     def on_delete(e, iid=iid):
-                        # Declaramos el diálogo vacío primero para poder usarlo dentro de las funciones anidadas
                         dlg = ft.AlertDialog(
                             title=ft.Text("¿Eliminar ingreso?"),
                             content=ft.Text("Esta acción no se puede deshacer.")
@@ -78,10 +76,10 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                         def confirm(ev):
                             db.delete_ingreso(iid)
                             dlg.open = False
-                            ev.page.update()  # Cierra el diálogo visualmente
+                            ev.page.update()  
                             snack(ev.page, "Ingreso eliminado")
-                            render_list()     # Renderiza la lista internamente
-                            ev.page.update()  # Refresca la interfaz completa
+                            render_list()     
+                            ev.page.update()  
                             
                         def cancel(ev):
                             dlg.open = False
@@ -92,7 +90,6 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                             ft.TextButton("Eliminar", on_click=confirm, style=ft.ButtonStyle(color="red")),
                         ]
                         
-                        # SOLUCIÓN: Agregar al overlay y abrir correctamente
                         e.page.overlay.append(dlg)
                         dlg.open = True
                         e.page.update()
@@ -138,7 +135,7 @@ def IngresosView(db: Database, navigate) -> ft.Container:
 
     render_list()
 
-    # ── Filtros ────────────────────────────────────────────
+    #FILTROS DE BUSQUEDA
     def make_tab(label, val):
         def on_click(e):
             filtro_estado["val"] = val

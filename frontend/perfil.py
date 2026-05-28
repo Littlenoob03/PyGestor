@@ -13,7 +13,7 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
     if not user:
         return ft.Container(content=ft.Text("Usuario no encontrado."))
 
-    # Referencias
+    #REFERENCIAS
     f_username = text_field("Usuario", "Tu nombre de usuario", value=user.get("username", ""))
     f_password = text_field("Contraseña", "Tu contraseña", value=user.get("password", ""), password=True)
     f_email    = text_field("Email", "tu@email.com", value=user.get("email", ""))
@@ -109,7 +109,7 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
         ft.Row([btn_primary("Guardar Cambios", on_click=guardar, icon=ft.Icons.SAVE)], alignment=ft.MainAxisAlignment.END)
     ], spacing=16)
 
-    # ── Planes ────────────────────────────────────────────────
+    #PLAN DE SUSBSCRIPCION
     current_plan = user.get("plan", "Plan Personal")
 
     def create_plan_card(title, price, features, is_active):
@@ -149,12 +149,12 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
             expand=True
         ),
         ft.Container(
-            content=create_plan_card("Plan Deluxe", "19.99€ / mes", ["Exportación a PDF/Excel", "Modo multi-usuario", "Soporte 24/7", "Asesoría fiscal"], current_plan == "Plan Deluxe"),
+            content=create_plan_card("Plan Deluxe", "19.99€ / mes", ["Exportación a PDF/Excel", "Modo multi-usuario", "Soporte 24/7"], current_plan == "Plan Deluxe"),
             expand=True
         )
     ], spacing=20, alignment=ft.MainAxisAlignment.START, vertical_alignment=ft.CrossAxisAlignment.START)
 
-    # ── Pestañas Customizadas ─────────────────────────────────
+    #PESTAÑAS SUPERIORES
     active_tab = "datos"
 
     def set_tab(tab_name):

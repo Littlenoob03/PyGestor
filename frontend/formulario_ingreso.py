@@ -8,7 +8,7 @@ from frontend.styles import (
 
 def FormularioIngresoView(db: Database, navigate, edit_id=None) -> ft.Container:
     
-    # Referencias de los campos
+    #CAMPOS DE INGRESOS
     f_origen   = dropdown("Fuente / Origen", [
         ("Nómina", "💼 Nómina"),
         ("Bizum", "📱 Bizum"),

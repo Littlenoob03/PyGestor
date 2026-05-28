@@ -37,7 +37,6 @@ def main(page: ft.Page):
         current_view["name"] = view_name
         render_view(view_name, **kwargs)
         update_nav(view_name)
-        # Close sidebar on mobile after navigating
         if page.width < 768 and 'sidebar_container' in locals() and sidebar_container.offset.x == 0:
             toggle_sidebar(None)
         page.update()
@@ -55,7 +54,7 @@ def main(page: ft.Page):
         content_area.content = views.get(view_name, views["dashboard"])()
         page.update()
 
-    # ── Nav items con iconos Material Design ───────────────
+    #ICONOS CON MATERIAL DESING
     nav_items = [
         ("dashboard", ft.Icons.DASHBOARD_OUTLINED,         "Dashboard"),
         ("ingresos",  ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED, "Ingresos"),
@@ -84,21 +83,20 @@ def main(page: ft.Page):
         for key, btn in nav_buttons.items():
             if key == active:
                 btn.bgcolor = ft.Colors.with_opacity(0.18, "white")
-                # Resaltar icono y texto en activo
                 row = btn.content
-                row.controls[0].color = "#A5B4FC"   # icono indigo claro
+                row.controls[0].color = "#A5B4FC"
             else:
                 btn.bgcolor = ft.Colors.with_opacity(0, "white")
                 row = btn.content
                 row.controls[0].color = "white"
         page.update()
 
-    # ── Sidebar ────────────────────────────────────────────
+    #SIDEBAR
     sidebar = ft.Container(
         width=235,
         bgcolor="#0F1729",
         content=ft.Column([
-            # Logo
+            #LOGO
             ft.Container(
                 content=ft.Image(src="banner.jpg", width=180, fit=ft.BoxFit.CONTAIN),
                 padding=ft.Padding.symmetric(horizontal=20, vertical=20),
@@ -106,7 +104,7 @@ def main(page: ft.Page):
             ),
             ft.Divider(color=ft.Colors.with_opacity(0.15, "white"), height=1),
             ft.Container(height=8),
-            # Etiqueta de sección
+            #ETIQUETA DE SECCION
             ft.Container(
                 content=ft.Text("MENÚ PRINCIPAL", size=10,
                                 weight=ft.FontWeight.W_600,
@@ -114,7 +112,7 @@ def main(page: ft.Page):
                 padding=ft.Padding.symmetric(horizontal=20, vertical=4),
             ),
             ft.Container(height=4),
-            # Nav buttons
+            #BOTONES DE REDIRECCION ( GASTOS, INGRESOS, INFORMES Y DASHBOARD)
             ft.Container(
                 content=ft.Column([
                     make_nav_button(k, i, l) for k, i, l in nav_items
@@ -161,7 +159,7 @@ def main(page: ft.Page):
                     sidebar_avatar_container.visible = True
         page.update()
 
-    # User info
+    #INFO USUARIO
     ft_user_info = ft.Container(
         content=ft.Row([
             ft.Stack([sidebar_avatar_container, sidebar_image]),
@@ -183,7 +181,7 @@ def main(page: ft.Page):
 
     sidebar.content.controls.append(ft_user_info)
 
-    # ── Sidebar Responsive Wrapper ────────────────────────
+    #SIDEBAR RESPONSIVE
     overlay_bg = ft.Container(
         bgcolor=ft.Colors.with_opacity(0.4, "black"),
         expand=True,
@@ -216,7 +214,7 @@ def main(page: ft.Page):
 
     sidebar_spacer = ft.Container(width=235, visible=True)
 
-    # ── Layout principal ───────────────────────────────────
+    #LAYOUT
     main_layout = ft.Stack([
         ft.Row([
             sidebar_spacer,
@@ -251,7 +249,6 @@ def main(page: ft.Page):
         page.controls.clear()
         page.add(main_layout)
         navigate("dashboard")
-        # Trigger resize to fix initial layout
         page_resize(None)
 
     def logout():
@@ -260,12 +257,12 @@ def main(page: ft.Page):
         page.add(LoginView(db, on_login))
         page.update()
 
-    page.logout = logout  # Permitir redirigir al login desde cualquier vista
+    page.logout = logout
 
-    # Inicializar con Login
+    #INICIALIZAR CON LOGIN
     page.add(LoginView(db, on_login))
 
 
 if __name__ == "__main__":
-    # ft.app(target=main, assets_dir="assets") 
+    # ft.app(target=main, assets_dir="assets") PARA ARRANCAR LA APP EN FORMATO APP EN VEZ DE NAVEGADOR
     ft.app(target=main, assets_dir="assets", view=ft.AppView.WEB_BROWSER)

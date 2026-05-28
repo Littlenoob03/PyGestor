@@ -1,26 +1,21 @@
-"""
-charts.py – Generación de gráficos con matplotlib para GestorPro.
-Devuelve las imágenes en base64 para usarlas con ft.Image(src_base64=...).
-"""
 import io
 import base64
 import matplotlib
-matplotlib.use("Agg")   # Backend sin ventana
+matplotlib.use("Agg")   
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.ticker import FuncFormatter
 
-# ── Paleta coherente con el diseño de GestorPro ───────────
-# Semántica: azul=ingresos, violeta=gastos, esmeralda=beneficio, ámbar=fiscal
-C_INDIGO  = "#3B82F6"   # azul     → Ingresos
-C_EMERALD = "#10B981"   # esmeralda
-C_ROSE    = "#8B5CF6"   # violeta  → Gastos
-C_SKY     = "#06B6D4"   # cyan
-C_AMBER   = "#F59E0B"   # ámbar
-C_PURPLE  = "#EC4899"   # rosa
-C_TEAL    = "#14B8A6"   # teal
-C_ORANGE  = "#F97316"   # naranja
-C_RED     = "#DC2626"   # rojo profundo
+#PALETA DE COLORES DE LOS GRAFICOS
+C_INDIGO  = "#3B82F6"  
+C_EMERALD = "#10B981"   
+C_ROSE    = "#8B5CF6"   
+C_SKY     = "#06B6D4"   
+C_AMBER   = "#F59E0B"   
+C_PURPLE  = "#EC4899"   
+C_TEAL    = "#14B8A6"   
+C_ORANGE  = "#F97316"   
+C_RED     = "#DC2626"   
 
 CHART_PALETTE = [C_INDIGO, C_EMERALD, C_AMBER,
                  C_RED,    C_TEAL,    C_ROSE,
@@ -66,7 +61,7 @@ def euro_fmt(x, pos):
     return f"{x:.0f}€"
 
 
-# ── 1. LineChart – Evolución mensual ──────────────────────
+# GRAFICO 1: EVOLUCION MENSUAL DE INGRESOS Y GASTOS
 def line_chart_mensual(ing_mes: list, gast_mes: list,
                        meses: list, width_px=560, height_px=220) -> str:
     fig, ax = plt.subplots(figsize=(width_px / 130, height_px / 130))
@@ -94,7 +89,7 @@ def line_chart_mensual(ing_mes: list, gast_mes: list,
     return _to_b64(fig)
 
 
-# ── 2. PieChart (donut) – Distribución de gastos ─────────
+#GRAFICO 2: DISTRIBUCIÓN DE GASTOS (DONUT)
 def donut_chart_gastos(por_cat: dict, labels_map: dict,
                        width_px=260, height_px=220) -> str:
     if not por_cat:
@@ -118,11 +113,9 @@ def donut_chart_gastos(por_cat: dict, labels_map: dict,
         wedgeprops=dict(width=0.55, edgecolor="white", linewidth=2),
     )
 
-    # Texto central
     ax.text(0, 0, f"{total:.0f}€", ha="center", va="center",
             fontsize=11, fontweight="bold", color=TEXT_DARK)
 
-    # Leyenda lateral
     legend_patches = [
         mpatches.Patch(color=c, label=f"{l}  {v/total*100:.0f}%")
         for c, l, v in zip(colores, etiquetas, valores)
@@ -135,7 +128,7 @@ def donut_chart_gastos(por_cat: dict, labels_map: dict,
     return _to_b64(fig)
 
 
-# ── 3. BarChart – Ingresos vs Gastos Mensuales ──────────────
+# GRAFICO 3: INGRESOS VS GASTOS MENSUALES (BARRAS)
 def bar_chart_ingresos_gastos(ing_mes: list, gast_mes: list, meses: list,
                               width_px=480, height_px=240) -> str:
     if not any(ing_mes) and not any(gast_mes):
@@ -166,7 +159,7 @@ def bar_chart_ingresos_gastos(ing_mes: list, gast_mes: list, meses: list,
     return _to_b64(fig)
 
 
-# ── 4. BarChart agrupado – Comparativa trimestral ─────────
+# GRAFICO 4: COMPARATIVA TRIMESTRAL (BARRAS)
 def bar_chart_trimestral(trimestres: list,
                          width_px=560, height_px=240) -> str:
     import numpy as np

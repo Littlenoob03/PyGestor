@@ -16,7 +16,6 @@ def GastosView(db: Database, navigate) -> ft.Container:
         gasts = sorted(db.gastos_by_year(year), key=lambda g: g.fecha, reverse=True)
         list_col.controls.clear()
 
-        # Cabecera
         def th(t):
             return ft.Container(
                 content=ft.Text(t, size=11, weight=ft.FontWeight.W_600, color=COLORS["text_muted"])
@@ -119,7 +118,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
 
     render_list()
 
-    # ── Tarjetas resumen por categoría ─────────────────────
+    #TARJETAS DE GASTOS POR CATEGORIAS ( ARRIBA DE LA PAGINA )
     por_cat = gastos_por_categoria(db.gastos_by_year(year))
     cat_cards = ft.Row(
         controls=[
