@@ -57,17 +57,9 @@ def IngresosView(db: Database, navigate) -> ft.Container:
 
                 def make_actions(iid):
                     def on_edit(e, iid=iid):
-                        if getattr(e.page, "is_guest", False):
-                            snack(e.page, "Modo Invitado: Inicia sesión para editar.", ok=False)
-                            if hasattr(e.page, "logout"): e.page.logout()
-                            return
                         navigate("form_ingreso", edit_id=iid)
 
                     def on_toggle(e, iid=iid):
-                        if getattr(e.page, "is_guest", False):
-                            snack(e.page, "Modo Invitado: Inicia sesión para modificar.", ok=False)
-                            if hasattr(e.page, "logout"): e.page.logout()
-                            return
                         ing = db.get_ingreso(iid)
                         new_estado = "cobrado" if ing.estado == "pendiente" else "pendiente"
                         db.update_ingreso(iid, estado=new_estado)
@@ -75,11 +67,6 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                         refresh(e.page)
 
                     def on_delete(e, iid=iid):
-                        if getattr(e.page, "is_guest", False):
-                            snack(e.page, "Modo Invitado: Inicia sesión para borrar.", ok=False)
-                            if hasattr(e.page, "logout"): e.page.logout()
-                            return
-                            
                         # Declaramos el diálogo vacío primero para poder usarlo dentro de las funciones anidadas
                         dlg = ft.AlertDialog(
                             title=ft.Text("¿Eliminar ingreso?"),
@@ -166,10 +153,6 @@ def IngresosView(db: Database, navigate) -> ft.Container:
     ])
 
     def nuevo_ingreso(e):
-        if getattr(e.page, "is_guest", False):
-            snack(e.page, "Modo Invitado: Inicia sesión para añadir datos.", ok=False)
-            if hasattr(e.page, "logout"): e.page.logout()
-            return
         navigate("form_ingreso")
 
     content = ft.Column([

@@ -68,7 +68,7 @@ def LoginView(db, on_login) -> ft.Container:
             # Login
             user = db.get_usuario(username.value, password.value)
             if user:
-                on_login(is_guest=False, user_id=user["id"])
+                on_login(user_id=user["id"])
             else:
                 snack(e.page, "Usuario o contraseña incorrectos", ok=False)
 
@@ -90,9 +90,6 @@ def LoginView(db, on_login) -> ft.Container:
             btn_toggle.icon = ft.Icons.PERSON_ADD_OUTLINED
         
         e.page.update()
-
-    def handle_guest(e):
-        on_login(is_guest=True, user_id=None)
 
     # ── Logo ───────────────────────────────────────────────────
     logo = ft.Container(
@@ -138,15 +135,6 @@ def LoginView(db, on_login) -> ft.Container:
                 ),
             ]),
             ft.Container(height=16),
-            ft.Divider(color=COLORS["border"], height=1),
-            ft.Container(height=8),
-            ft.TextButton(
-                content=ft.Row([
-                    ft.Icon(ft.Icons.VISIBILITY_OUTLINED, size=18, color=COLORS["text_secondary"]),
-                    ft.Text("Entrar como invitado (solo lectura)", size=14, color=COLORS["text_secondary"]),
-                ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
-                on_click=handle_guest,
-            ),
         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, tight=True),
         width=400,
         bgcolor="white",

@@ -48,17 +48,9 @@ def GastosView(db: Database, navigate) -> ft.Container:
 
                 def make_actions(gid):
                     def on_edit(e, gid=gid):
-                        if getattr(e.page, "is_guest", False):
-                            snack(e.page, "Modo Invitado: Inicia sesión para editar.", ok=False)
-                            if hasattr(e.page, "logout"): e.page.logout()
-                            return
                         navigate("form_gasto", edit_id=gid)
 
                     def on_delete(e, gid=gid):
-                        if getattr(e.page, "is_guest", False):
-                            snack(e.page, "Modo Invitado: Inicia sesión para borrar.", ok=False)
-                            if hasattr(e.page, "logout"): e.page.logout()
-                            return
                             
                         dlg = ft.AlertDialog(
                             title=ft.Text("¿Eliminar gasto?"),
@@ -150,10 +142,6 @@ def GastosView(db: Database, navigate) -> ft.Container:
     )
 
     def nuevo_gasto(e):
-        if getattr(e.page, "is_guest", False):
-            snack(e.page, "Modo Invitado: Inicia sesión para añadir datos.", ok=False)
-            if hasattr(e.page, "logout"): e.page.logout()
-            return
         navigate("form_gasto")
 
     content = ft.Column([

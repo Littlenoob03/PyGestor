@@ -137,9 +137,9 @@ def main(page: ft.Page):
     sidebar_plan = ft.Text("Plan Personal", size=11, color="#A5B4FC")
 
     def refresh_sidebar():
-        if page.is_guest or not db.current_user_id:
-            sidebar_initials.value = "IN"
-            sidebar_username.value = "Invitado"
+        if not db.current_user_id:
+            sidebar_initials.value = "?"
+            sidebar_username.value = "Desconectado"
             sidebar_plan.value = "Sin cuenta"
             sidebar_avatar_container.visible = True
             sidebar_image.visible = False
@@ -191,8 +191,7 @@ def main(page: ft.Page):
         ),
     ], expand=True, spacing=0, vertical_alignment=ft.CrossAxisAlignment.START)
 
-    def on_login(is_guest: bool, user_id: int = None):
-        page.is_guest = is_guest
+    def on_login(user_id: int):
         db.current_user_id = user_id
         refresh_sidebar()
         page.controls.clear()
@@ -200,7 +199,7 @@ def main(page: ft.Page):
         navigate("dashboard")
 
     def logout():
-        page.is_guest = False
+        db.current_user_id = None
         page.controls.clear()
         page.add(LoginView(db, on_login))
         page.update()
