@@ -96,11 +96,11 @@ class Database:
         ).fetchone()
         return dict(row) if row else None
 
-    def add_usuario(self, username, password):
+    def add_usuario(self, username, password, email=''):
         try:
             self.conn.execute(
-                "INSERT INTO usuarios (username, password, email, telefono, foto, plan) VALUES (?, ?, '', '', '', 'Plan Personal')",
-                (username, password)
+                "INSERT INTO usuarios (username, password, email, telefono, foto, plan) VALUES (?, ?, ?, '', '', 'Plan Personal')",
+                (username, password, email)
             )
             self.conn.commit()
             return True

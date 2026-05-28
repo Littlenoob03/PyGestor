@@ -17,6 +17,18 @@ def LoginView(db, on_login) -> ft.Container:
         content_padding=ft.Padding.symmetric(horizontal=16, vertical=12),
     )
     
+    email = ft.TextField(
+        label="Correo Electrónico",
+        prefix_icon=ft.Icons.EMAIL_OUTLINED,
+        border_radius=12,
+        border_color=COLORS["border"],
+        focused_border_color=COLORS["primary"],
+        text_size=14,
+        label_style=ft.TextStyle(color=COLORS["text_secondary"], size=13),
+        content_padding=ft.Padding.symmetric(horizontal=16, vertical=12),
+        visible=False,
+    )
+    
     password = ft.TextField(
         label="Contraseña",
         prefix_icon=ft.Icons.LOCK_OUTLINE,
@@ -54,14 +66,32 @@ def LoginView(db, on_login) -> ft.Container:
             return
             
         if is_register_mode[0]:
+            if not email.value:
+                snack(e.page, "Por favor, introduce un correo electrónico.", ok=False)
+                return
+            
+            valid_domains = ["@gmail.com", "@hotmail.com", "@hotmail.es", "@yahoo.com", ".es", ".com"]
+            if not any(d in email.value.lower() for d in valid_domains) or "@" not in email.value:
+                snack(e.page, "Por favor, introduce un correo válido (ej: @gmail.com, @hotmail.com).", ok=False)
+                return
+
+            if len(password.value) < 8:
+                snack(e.page, "La contraseña debe tener al menos 8 caracteres.", ok=False)
+                return
+            
+            if not any(c.isupper() for c in password.value):
+                snack(e.page, "La contraseña debe contener al menos una letra mayúscula.", ok=False)
+                return
+
             if password.value != password_confirm.value:
                 snack(e.page, "Las contraseñas no coinciden.", ok=False)
                 return
-            success = db.add_usuario(username.value, password.value)
+                
+            success = db.add_usuario(username.value, password.value, email.value)
             if success:
                 snack(e.page, "Cuenta creada con éxito. Iniciando sesión...", ok=True)
                 user = db.get_usuario(username.value, password.value)
-                on_login(is_guest=False, user_id=user["id"] if user else None)
+                on_login(user_id=user["id"] if user else None)
             else:
                 snack(e.page, "Ese nombre de usuario ya existe.", ok=False)
         else:
@@ -76,6 +106,7 @@ def LoginView(db, on_login) -> ft.Container:
         is_register_mode[0] = not is_register_mode[0]
         if is_register_mode[0]:
             title_text.value = "Crea una cuenta nueva"
+            email.visible = True
             password_confirm.visible = True
             btn_action.content.controls[0].name = ft.Icons.PERSON_ADD_ALT_1
             btn_action.content.controls[1].value = "Crear Cuenta"
@@ -83,6 +114,7 @@ def LoginView(db, on_login) -> ft.Container:
             btn_toggle.icon = ft.Icons.ARROW_BACK
         else:
             title_text.value = "Inicia sesión para gestionar tu negocio"
+            email.visible = False
             password_confirm.visible = False
             btn_action.content.controls[0].name = ft.Icons.LOGIN
             btn_action.content.controls[1].value = "Iniciar Sesión"
@@ -119,7 +151,7 @@ def LoginView(db, on_login) -> ft.Container:
     card = ft.Container(
         content=ft.Column([
             logo,
-            ft.Column([username, password, password_confirm], spacing=16),
+            ft.Column([username, email, password, password_confirm], spacing=16),
             ft.Container(height=24),
             ft.Row([
                 ft.Container(
