@@ -28,13 +28,13 @@ def InformesView(db: Database, navigate) -> ft.Container:
             ft.Text(f"Resumen Anual {year}", size=15,
                     weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
             ft.Container(height=12),
-            ft.Row([
-                _kpi_mini("Total Ingresos",   fmt(total_ingresos), COLORS["stat1"]),
-                _kpi_mini("Total Gastos",     fmt(total_gastos_v), COLORS["danger"]),
-                _kpi_mini("Ahorro Neto",      fmt(beneficio_neto), COLORS["success"]),
-                _kpi_mini("Margen",           f"{tasa_beneficio:.1f} %", COLORS["stat4"]),
-                _kpi_mini("Nº Ingresos",      str(len(ingresos)),  COLORS["stat1"]),
-                _kpi_mini("Nº Gastos",        str(len(gastos)),    COLORS["stat3"]),
+            ft.ResponsiveRow([
+                ft.Container(content=_kpi_mini("Total Ingresos",   fmt(total_ingresos), COLORS["stat1"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=_kpi_mini("Total Gastos",     fmt(total_gastos_v), COLORS["danger"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=_kpi_mini("Ahorro Neto",      fmt(beneficio_neto), COLORS["success"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=_kpi_mini("Margen",           f"{tasa_beneficio:.1f} %", COLORS["stat4"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=_kpi_mini("Nº Ingresos",      str(len(ingresos)),  COLORS["stat1"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=_kpi_mini("Nº Gastos",        str(len(gastos)),    COLORS["stat3"]), col={"xs": 6, "sm": 4, "lg": 2}),
             ], spacing=12),
         ], spacing=0),
     )
@@ -42,14 +42,14 @@ def InformesView(db: Database, navigate) -> ft.Container:
     # ── BarChart – Ingresos vs Gastos Mensuales ────────────────────
     ing_mes  = ingresos_por_mes(ingresos)
     gast_mes = gastos_por_mes(gastos)
-    cl_b64 = bar_chart_ingresos_gastos(ing_mes, gast_mes, MESES, width_px=480, height_px=250)
+    cl_b64 = bar_chart_ingresos_gastos(ing_mes, gast_mes, MESES, width_px=1000, height_px=350)
 
     mensual_chart = card(
         ft.Column([
             ft.Text("Ingresos vs Gastos Mensuales", size=15,
                     weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
             ft.Container(height=8),
-            ft.Image(src=cl_b64, width=480, height=250,
+            ft.Image(src=cl_b64, height=280,
                      fit=ft.BoxFit.CONTAIN),
         ], spacing=0),
         expand=True,
@@ -58,14 +58,14 @@ def InformesView(db: Database, navigate) -> ft.Container:
     # ── PieChart (donut) – Gastos por categoría ────────────
     por_cat  = gastos_por_categoria(gastos)
     donut_b64 = donut_chart_gastos(por_cat, CAT_LABELS,
-                                    width_px=360, height_px=250)
+                                    width_px=600, height_px=350)
 
     gastos_chart = card(
         ft.Column([
             ft.Text("Gastos por Categoría", size=15,
                     weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
             ft.Container(height=8),
-            ft.Image(src=donut_b64, width=360, height=250,
+            ft.Image(src=donut_b64, height=280,
                      fit=ft.BoxFit.CONTAIN),
         ], spacing=0),
         expand=True,
@@ -73,7 +73,38 @@ def InformesView(db: Database, navigate) -> ft.Container:
 
     # ── BarChart agrupado – Comparativa trimestral ─────────
     trimestres = [calcular_trimestre(ingresos, gastos, t) for t in [1, 2, 3, 4]]
-    trim_b64 = bar_chart_trimestral(trimestres, width_px=560, height_px=260)
+    trim_b64 = bar_chart_trimestral(trimestres, width_px=1200, height_px=400)
+
+    def trim_table():
+        rows = [
+            ft.Container(
+                content=ft.Row([
+                    ft.Text("Período", size=11, weight=ft.FontWeight.BOLD, color=COLORS["text_muted"], width=50),
+                    ft.Text("Ingresos", size=11, weight=ft.FontWeight.BOLD, color=COLORS["text_muted"], expand=True, text_align=ft.TextAlign.RIGHT),
+                    ft.Text("Gastos", size=11, weight=ft.FontWeight.BOLD, color=COLORS["text_muted"], expand=True, text_align=ft.TextAlign.RIGHT),
+                ]),
+                padding=ft.Padding.symmetric(vertical=8, horizontal=12),
+                border=ft.border.only(bottom=ft.border.BorderSide(1, COLORS["border"]))
+            )
+        ]
+        for t in trimestres:
+            rows.append(
+                ft.Container(
+                    content=ft.Row([
+                        ft.Text(f"T{t['trimestre']}", weight=ft.FontWeight.BOLD, size=13, color=COLORS["text_primary"], width=50),
+                        ft.Text(fmt(t["base_ingresos"]), size=13, weight=ft.FontWeight.W_600, color=COLORS["stat1"], expand=True, text_align=ft.TextAlign.RIGHT),
+                        ft.Text(fmt(t["base_gastos"]), size=13, weight=ft.FontWeight.W_600, color=COLORS["stat3"], expand=True, text_align=ft.TextAlign.RIGHT),
+                    ]),
+                    padding=ft.Padding.symmetric(vertical=10, horizontal=12),
+                    border=ft.border.only(bottom=ft.border.BorderSide(1, COLORS["border"])) if t["trimestre"] < 4 else None
+                )
+            )
+        return ft.Container(
+            content=ft.Column(rows, spacing=0),
+            bgcolor="#F7F8FA",
+            border_radius=12,
+            padding=4
+        )
 
     trimestral_chart = card(
         ft.Column([
@@ -90,10 +121,22 @@ def InformesView(db: Database, navigate) -> ft.Container:
                     ft.Text("Gastos", size=11, color=COLORS["text_secondary"]),
                 ], spacing=6),
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Container(height=8),
-            ft.Image(src=trim_b64, width=560, height=260,
-                     fit=ft.BoxFit.CONTAIN),
-        ], spacing=0),
+            ft.Container(height=16),
+            ft.ResponsiveRow([
+                ft.Container(
+                    content=ft.Image(src=trim_b64, height=320, fit=ft.BoxFit.CONTAIN),
+                    col={"xs": 12, "lg": 7}
+                ),
+                ft.Container(
+                    content=ft.Column([
+                        ft.Text("Detalle Acumulado", weight=ft.FontWeight.BOLD, size=13, color=COLORS["text_primary"]),
+                        trim_table()
+                    ], spacing=12),
+                    col={"xs": 12, "lg": 5},
+                    padding=ft.Padding.only(top=20)
+                )
+            ], vertical_alignment=ft.CrossAxisAlignment.START),
+        ], spacing=0, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
     )
 
     content = ft.Column([
@@ -101,11 +144,13 @@ def InformesView(db: Database, navigate) -> ft.Container:
         ft.Container(height=20),
         resumen_anual,
         ft.Container(height=16),
-        ft.Row([mensual_chart, gastos_chart], spacing=20,
-               vertical_alignment=ft.CrossAxisAlignment.START),
+        ft.ResponsiveRow([
+            ft.Container(content=mensual_chart, col={"xs": 12, "lg": 7}),
+            ft.Container(content=gastos_chart, col={"xs": 12, "lg": 5})
+        ], spacing=20, vertical_alignment=ft.CrossAxisAlignment.START),
         ft.Container(height=16),
         trimestral_chart,
-    ], spacing=0, scroll=ft.ScrollMode.AUTO)
+    ], spacing=0, scroll=ft.ScrollMode.AUTO, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
     return page_wrapper(content)
 
@@ -119,6 +164,5 @@ def _kpi_mini(label: str, value: str, color: str) -> ft.Container:
         bgcolor="#F7F8FA",
         border_radius=12,
         padding=16,
-        expand=True,
         alignment=ft.Alignment(0, 0),
     )
