@@ -29,8 +29,8 @@ def DashboardView(db: Database, navigate) -> ft.Container:
         ("Ahorro Neto",       fmt(res["beneficio"]),      "Ingresos – Gastos",
          GRADIENTS[2], ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED),
     ]
-    kpis = ft.Row([
-        gradient_stat_card(t, v, s, ga, gb, icon=ic)
+    kpis = ft.ResponsiveRow([
+        ft.Container(content=gradient_stat_card(t, v, s, ga, gb, icon=ic), col={"xs": 12, "md": 4})
         for t, v, s, (ga, gb), ic in kpi_data
     ], spacing=16)
 
@@ -39,7 +39,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
     gast_mes = gastos_por_mes(gastos)
 
     line_b64 = line_chart_mensual(ing_mes, gast_mes, MESES,
-                                   width_px=660, height_px=230)
+                                   width_px=1000, height_px=350)
 
     grafico = card(
         ft.Column([
@@ -56,17 +56,15 @@ def DashboardView(db: Database, navigate) -> ft.Container:
                     ft.Text("Gastos", size=11, color=COLORS["text_secondary"]),
                 ], spacing=6),
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Container(height=8),
-            ft.Image(src=line_b64, width=660, height=230,
+            ft.Image(src=line_b64, height=240,
                      fit=ft.BoxFit.CONTAIN),
-        ], spacing=0),
-        expand=True,
+        ], spacing=0, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
     )
 
     # ── PieChart (donut) – Gastos por categoría ────────────
     por_cat  = gastos_por_categoria(gastos)
     donut_b64 = donut_chart_gastos(por_cat, CAT_LABELS,
-                                    width_px=380, height_px=200)
+                                    width_px=600, height_px=350)
 
     gastos_chart = card(
         ft.Column([
@@ -74,10 +72,9 @@ def DashboardView(db: Database, navigate) -> ft.Container:
                     weight=ft.FontWeight.BOLD,
                     color=COLORS["text_primary"]),
             ft.Container(height=8),
-            ft.Image(src=donut_b64, width=380, height=200,
+            ft.Image(src=donut_b64, height=240,
                      fit=ft.BoxFit.CONTAIN),
-        ], spacing=0),
-        width=420,
+        ], spacing=0, horizontal_alignment=ft.CrossAxisAlignment.STRETCH),
     )
 
     # ── Últimos Ingresos ───────────────────────────────────
@@ -140,8 +137,10 @@ def DashboardView(db: Database, navigate) -> ft.Container:
         ft.Container(height=20),
         kpis,
         ft.Container(height=20),
-        ft.Row([grafico, gastos_chart], spacing=16,
-               vertical_alignment=ft.CrossAxisAlignment.START),
+        ft.ResponsiveRow([
+            ft.Container(content=grafico, col={"xs": 12, "lg": 7}),
+            ft.Container(content=gastos_chart, col={"xs": 12, "lg": 5})
+        ], spacing=16, vertical_alignment=ft.CrossAxisAlignment.START),
         ft.Container(height=20),
         ingresos_list,
     ], spacing=0, scroll=ft.ScrollMode.AUTO)

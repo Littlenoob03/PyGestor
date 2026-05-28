@@ -26,18 +26,20 @@ def IngresosView(db: Database, navigate) -> ft.Container:
         list_col.controls.clear()
 
         # Cabecera
-        def th(t, w=None):
+        def th(t):
             return ft.Container(
                 content=ft.Text(t, size=11, weight=ft.FontWeight.W_600,
-                                color=COLORS["text_muted"]),
-                width=w,
+                                color=COLORS["text_muted"])
             )
 
         list_col.controls.append(ft.Container(
-            content=ft.Row([
-                th("ORIGEN", 160), th("CONCEPTO", 200), th("FECHA", 100),
-                th("IMPORTE", 100), th("ESTADO", 90), th("", 100),
-            ], spacing=8),
+            content=ft.ResponsiveRow([
+                ft.Container(content=th("ORIGEN"), col={"xs": 12, "md": 3}),
+                ft.Container(content=th("CONCEPTO"), col={"xs": 12, "md": 4}),
+                ft.Container(content=th("FECHA"), col={"xs": 6, "md": 2}),
+                ft.Container(content=th("IMPORTE"), col={"xs": 6, "md": 2}),
+                ft.Container(content=th("ESTADO"), col={"xs": 6, "md": 1}),
+            ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
             bgcolor="#F7F8FA", padding=ft.Padding.symmetric(horizontal=16, vertical=10),
             border_radius=ft.BorderRadius.only(top_left=12, top_right=12),
         ))
@@ -107,27 +109,28 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                                       icon_size=18, width=32, height=32),
                     ], spacing=0)
 
-                def cell(t, w=None, bold=False, color=None):
+                def cell(t, bold=False, color=None):
                     return ft.Container(
                         content=ft.Text(str(t), size=13,
                                         weight=ft.FontWeight.W_600 if bold else ft.FontWeight.NORMAL,
-                                        color=color or COLORS["text_primary"]),
-                        width=w,
+                                        color=color or COLORS["text_primary"])
                     )
 
                 row = ft.Container(
-                    content=ft.Row([
-                        cell(i.origen, 160, bold=True, color=COLORS["primary"]),
-                        cell(i.concepto, 200),
-                        cell(i.fecha, 100, color=COLORS["text_secondary"]),
-                        cell(fmt(i.importe), 100, bold=True),
+                    content=ft.ResponsiveRow([
+                        ft.Container(content=cell(i.origen, bold=True, color=COLORS["primary"]), col={"xs": 12, "md": 3}),
+                        ft.Container(content=cell(i.concepto), col={"xs": 12, "md": 4}),
+                        ft.Container(content=cell(i.fecha, color=COLORS["text_secondary"]), col={"xs": 6, "md": 2}),
+                        ft.Container(content=cell(fmt(i.importe), bold=True), col={"xs": 6, "md": 2}),
                         ft.Container(
-                            content=badge("Cobrado" if i.estado=="cobrado" else "Pendiente",
-                                          "success" if i.estado=="cobrado" else "warning"),
-                            width=90,
+                            content=ft.Row([
+                                badge("Cobrado" if i.estado == "cobrado" else "Pendiente",
+                                      "success" if i.estado == "cobrado" else "warning"),
+                                make_actions(i.id)
+                            ], spacing=8, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                            col={"xs": 6, "md": 1}
                         ),
-                        make_actions(i.id),
-                    ], spacing=8),
+                    ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
                     bgcolor=bg,
                     padding=ft.Padding.symmetric(horizontal=16, vertical=12),
                 )
@@ -157,13 +160,13 @@ def IngresosView(db: Database, navigate) -> ft.Container:
 
     content = ft.Column([
         ft.Row([
-            section_header("Ingresos", "Gestiona todas tus fuentes de ingresos"),
+            section_header("Ingresos", "Gestiona tus fuentes de ingresos"),
             btn_primary("Nuevo Ingreso", on_click=nuevo_ingreso, icon=ft.Icons.ADD),
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         ft.Container(height=16),
         tabs,
         ft.Container(height=8),
         card(list_col, padding=0, radius=12),
-    ], spacing=0, scroll=ft.ScrollMode.AUTO)
+    ], spacing=0, scroll=ft.ScrollMode.AUTO, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
     return page_wrapper(content)

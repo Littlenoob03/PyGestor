@@ -37,6 +37,9 @@ def main(page: ft.Page):
         current_view["name"] = view_name
         render_view(view_name, **kwargs)
         update_nav(view_name)
+        # Close sidebar on mobile after navigating
+        if page.width < 768 and 'sidebar_container' in locals() and sidebar_container.offset.x == 0:
+            toggle_sidebar(None)
         page.update()
 
     def render_view(view_name: str, **kwargs):
@@ -180,16 +183,67 @@ def main(page: ft.Page):
 
     sidebar.content.controls.append(ft_user_info)
 
+    # ── Sidebar Responsive Wrapper ────────────────────────
+    overlay_bg = ft.Container(
+        bgcolor=ft.Colors.with_opacity(0.4, "black"),
+        expand=True,
+        visible=False,
+        on_click=lambda e: toggle_sidebar(e)
+    )
+    
+    sidebar_container = ft.Container(
+        content=sidebar,
+        width=235,
+        offset=ft.Offset(0, 0),
+        animate_offset=ft.Animation(300, "decelerate"),
+    )
+    
+    def toggle_sidebar(e):
+        if sidebar_container.offset.x == -1:
+            sidebar_container.offset.x = 0
+            overlay_bg.visible = True
+        else:
+            sidebar_container.offset.x = -1
+            overlay_bg.visible = False
+        page.update()
+
+    page.appbar = ft.AppBar(
+        leading=ft.IconButton(ft.Icons.MENU, on_click=toggle_sidebar, icon_color="black"),
+        title=ft.Text("PyGestor", color="black", weight=ft.FontWeight.BOLD),
+        bgcolor="white",
+        visible=False,
+    )
+
+    sidebar_spacer = ft.Container(width=235, visible=True)
+
     # ── Layout principal ───────────────────────────────────
-    main_layout = ft.Row([
-        sidebar,
-        ft.VerticalDivider(width=1, color="#E5E7EB"),
-        ft.Container(
-            content=content_area,
-            expand=True,
-            bgcolor="#F7F8FA",
-        ),
-    ], expand=True, spacing=0, vertical_alignment=ft.CrossAxisAlignment.START)
+    main_layout = ft.Stack([
+        ft.Row([
+            sidebar_spacer,
+            ft.Container(
+                content=content_area,
+                expand=True,
+                bgcolor="#F7F8FA",
+            ),
+        ], expand=True, spacing=0, vertical_alignment=ft.CrossAxisAlignment.START),
+        overlay_bg,
+        sidebar_container,
+    ], expand=True)
+
+    def page_resize(e):
+        if page.width < 768:
+            sidebar_spacer.visible = False
+            page.appbar.visible = True
+            if not overlay_bg.visible:
+                sidebar_container.offset.x = -1
+        else:
+            sidebar_spacer.visible = True
+            page.appbar.visible = False
+            sidebar_container.offset.x = 0
+            overlay_bg.visible = False
+        page.update()
+
+    page.on_resize = page_resize
 
     def on_login(user_id: int):
         db.current_user_id = user_id
@@ -197,6 +251,8 @@ def main(page: ft.Page):
         page.controls.clear()
         page.add(main_layout)
         navigate("dashboard")
+        # Trigger resize to fix initial layout
+        page_resize(None)
 
     def logout():
         db.current_user_id = None
@@ -211,5 +267,5 @@ def main(page: ft.Page):
 
 
 if __name__ == "__main__":
-    ft.app(target=main, assets_dir="assets") 
-    # view=ft.AppView.WEB_BROWSER)
+    # ft.app(target=main, assets_dir="assets") 
+    ft.app(target=main, assets_dir="assets", view=ft.AppView.WEB_BROWSER)

@@ -17,17 +17,19 @@ def GastosView(db: Database, navigate) -> ft.Container:
         list_col.controls.clear()
 
         # Cabecera
-        def th(t, w=None):
+        def th(t):
             return ft.Container(
-                content=ft.Text(t, size=11, weight=ft.FontWeight.W_600, color=COLORS["text_muted"]),
-                width=w,
+                content=ft.Text(t, size=11, weight=ft.FontWeight.W_600, color=COLORS["text_muted"])
             )
 
         list_col.controls.append(ft.Container(
-            content=ft.Row([
-                th("DESCRIPCIÓN", 220), th("CATEGORÍA", 140), th("FECHA", 100),
-                th("IMPORTE", 100), th("", 80),
-            ], spacing=8),
+            content=ft.ResponsiveRow([
+                ft.Container(content=th("DESCRIPCIÓN"), col={"xs": 12, "md": 4}),
+                ft.Container(content=th("CATEGORÍA"), col={"xs": 6, "md": 3}),
+                ft.Container(content=th("FECHA"), col={"xs": 6, "md": 2}),
+                ft.Container(content=th("IMPORTE"), col={"xs": 6, "md": 2}),
+                ft.Container(content=th(""), col={"xs": 6, "md": 1}),
+            ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
             bgcolor="#F7F8FA",
             padding=ft.Padding.symmetric(horizontal=16, vertical=10),
             border_radius=ft.BorderRadius.only(top_left=12, top_right=12),
@@ -88,27 +90,28 @@ def GastosView(db: Database, navigate) -> ft.Container:
                                       icon_size=18, width=32, height=32),
                     ], spacing=0)
 
-                def cell(t, w=None, bold=False, color=None):
+                def cell(t, bold=False, color=None):
                     return ft.Container(
                         content=ft.Text(str(t), size=13,
                                         weight=ft.FontWeight.W_600 if bold else ft.FontWeight.NORMAL,
-                                        color=color or COLORS["text_primary"]),
-                        width=w,
+                                        color=color or COLORS["text_primary"])
                     )
 
                 row = ft.Container(
-                    content=ft.Row([
-                        cell(g.descripcion, 220),
+                    content=ft.ResponsiveRow([
+                        ft.Container(content=cell(g.descripcion), col={"xs": 12, "md": 4}),
                         ft.Container(
-                            content=ft.Text(f"{ico} {lbl}", size=12),
-                            bgcolor="#EFF6FF", border_radius=8,
-                            padding=ft.Padding.symmetric(horizontal=8, vertical=4),
-                            width=140,
+                            content=ft.Container(
+                                content=ft.Text(f"{ico} {lbl}", size=12),
+                                bgcolor="#EFF6FF", border_radius=8,
+                                padding=ft.Padding.symmetric(horizontal=8, vertical=4),
+                            ),
+                            col={"xs": 6, "md": 3},
                         ),
-                        cell(g.fecha, 100, color=COLORS["text_secondary"]),
-                        cell(fmt(g.importe), 100, bold=True),
-                        make_actions(g.id),
-                    ], spacing=8),
+                        ft.Container(content=cell(g.fecha, color=COLORS["text_secondary"]), col={"xs": 6, "md": 2}),
+                        ft.Container(content=cell(fmt(g.importe), bold=True), col={"xs": 6, "md": 2}),
+                        ft.Container(content=make_actions(g.id), col={"xs": 6, "md": 1}),
+                    ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
                     bgcolor=bg,
                     padding=ft.Padding.symmetric(horizontal=16, vertical=12),
                 )
@@ -153,6 +156,6 @@ def GastosView(db: Database, navigate) -> ft.Container:
         cat_cards,
         ft.Container(height=16),
         card(list_col, padding=0, radius=12),
-    ], spacing=0, scroll=ft.ScrollMode.AUTO)
+    ], spacing=0, scroll=ft.ScrollMode.AUTO, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
     return page_wrapper(content)
