@@ -8,7 +8,7 @@ from backend.logic import (
 from frontend.styles import (
     COLORS, CAT_LABELS, MESES, card, section_header, page_wrapper,
 )
-from frontend.charts import (
+from frontend.graficos import (
     bar_chart_ingresos_gastos, donut_chart_gastos, bar_chart_trimestral,
 )
 

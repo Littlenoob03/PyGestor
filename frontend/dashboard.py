@@ -10,7 +10,7 @@ from frontend.styles import (
     gradient_stat_card, card, section_header,
     divider, badge, page_wrapper,
 )
-from frontend.charts import (
+from frontend.graficos import (
     line_chart_mensual, donut_chart_gastos,
 )
 
