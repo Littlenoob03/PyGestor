@@ -46,6 +46,7 @@ plt.rcParams.update({
 
 
 def _to_b64(fig) -> str:
+    """Convierte una figura de Matplotlib a una cadena de texto codificada en Base64 para poder mostrarla en Flet"""
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=130,
                 bbox_inches="tight", facecolor=BG_COLOR)
@@ -56,6 +57,7 @@ def _to_b64(fig) -> str:
 
 
 def euro_fmt(x, pos):
+    """Formatea los números en el eje vertical para que se muestren como '1k€' en lugar de '1000'"""
     if x >= 1000:
         return f"{x/1000:.0f}k€"
     return f"{x:.0f}€"
