@@ -67,7 +67,7 @@ def grafico_mensual_lineas(ing_mes: list, gast_mes: list,
     """
     Dibuja el gráfico de líneas que usamos para ver cómo suben o bajan nuestros ingresos y gastos a lo largo del año.
     
-    EXPLICACIÓN DIDÁCTICA DE MATPLOTLIB:
+    EXPLICACIÓN DE FUNCIONES DE MATPLOTLIB:
     1. 'plt.subplots()' crea una figura (el lienzo en blanco) y unos 'axes' (el área donde se dibuja).
        El tamaño se ajusta según los píxeles deseados convertidos a pulgadas.
     2. 'ax.plot()' dibuja la línea principal conectando los puntos (meses en X, importes en Y).
