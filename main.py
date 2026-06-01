@@ -13,7 +13,7 @@ def main(page: ft.Page):
     """
     Función principal que arranca la aplicación PyGestor.
     
-    EXPLICACIÓN DIDÁCTICA (Elementos usados en esta app):
+    EXPLICACIÓN FUNCIONES DE FLET Y COLORS:
     1. ft.Page: Es la ventana de la aplicación. Nos permite poner un título, cambiar el color de fondo y actualizar lo que se ve.
     2. ft.Container: Es como una "caja" donde metemos cosas. Le podemos dar color de fondo, redondearle los bordes o hacerla más grande.
     3. ft.Column / ft.Row: Sirven para ordenar esas cajas. 'Column' las pone en lista de arriba a abajo, y 'Row' las pone en fila de izquierda a derecha.
