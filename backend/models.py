@@ -4,6 +4,7 @@ from typing import Optional
 
 @dataclass
 class Ingreso:
+    """Representa un movimiento de entrada de dinero en la aplicación."""
     id: int
     origen: str         
     concepto: str
@@ -30,6 +31,7 @@ class Ingreso:
 
 @dataclass
 class Gasto:
+    """Representa un movimiento de salida de dinero (compra, recibo, etc.) en la aplicación."""
     id: int
     descripcion: str
     categoria: str

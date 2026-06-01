@@ -3,11 +3,12 @@ from datetime import datetime
 from backend.database import Database
 from backend.logic import fmt
 from frontend.styles import (
-    COLORS, card, btn_primary, btn_secondary, btn_danger,
-    badge, section_header, snack, page_wrapper
+    COLORS, card, btn_primario, btn_secundario, btn_aviso,
+    etiqueta, section_header, snack, responsive
 )
 
 def IngresosView(db: Database, navigate) -> ft.Container:
+    """Crea la pantalla de Ingresos, con su lista y los botones para ver los cobrados o pendientes."""
     year = datetime.now().year
     filtro_estado = {"val": "all"}
 
@@ -19,7 +20,7 @@ def IngresosView(db: Database, navigate) -> ft.Container:
 
     #TABLA DE INGRESOS
     def render_list():
-        ings = [i for i in db.ingresos_by_year(year)
+        ings = [i for i in db.ingresos_por_año(year)
                  if filtro_estado["val"] == "all" or i.estado == filtro_estado["val"]]
         ings.sort(key=lambda x: x.fecha, reverse=True)
 
@@ -56,7 +57,8 @@ def IngresosView(db: Database, navigate) -> ft.Container:
             for idx, i in enumerate(ings):
                 bg = "white" if idx % 2 == 0 else "#FAFAFA"
 
-                def make_actions(iid):
+                def accion(iid):
+                    """Crea los pequeños botones de la derecha para editar, cobrar o borrar el ingreso."""
                     def on_edit(e, iid=iid):
                         navigate("form_ingreso", edit_id=iid)
 
@@ -73,7 +75,7 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                             content=ft.Text("Esta acción no se puede deshacer.")
                         )
                         
-                        def confirm(ev):
+                        def confirmar(ev):
                             db.delete_ingreso(iid)
                             dlg.open = False
                             ev.page.update()  
@@ -81,13 +83,13 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                             render_list()     
                             ev.page.update()  
                             
-                        def cancel(ev):
+                        def cancelar(ev):
                             dlg.open = False
                             ev.page.update()
                             
                         dlg.actions = [
-                            ft.TextButton("Cancelar", on_click=cancel),
-                            ft.TextButton("Eliminar", on_click=confirm, style=ft.ButtonStyle(color="red")),
+                            ft.TextButton("Cancelar", on_click=cancelar),
+                            ft.TextButton("Eliminar", on_click=confirmar, style=ft.ButtonStyle(color="red")),
                         ]
                         
                         e.page.overlay.append(dlg)
@@ -106,7 +108,8 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                                       icon_size=18, width=32, height=32),
                     ], spacing=0)
 
-                def cell(t, bold=False, color=None):
+                def celda(t, bold=False, color=None):
+                    """Hace que todas las palabras de la tabla de ingresos tengan el mismo tipo de letra y queden bonitas."""
                     return ft.Container(
                         content=ft.Text(str(t), size=13,
                                         weight=ft.FontWeight.W_600 if bold else ft.FontWeight.NORMAL,
@@ -115,15 +118,15 @@ def IngresosView(db: Database, navigate) -> ft.Container:
 
                 row = ft.Container(
                     content=ft.ResponsiveRow([
-                        ft.Container(content=cell(i.origen, bold=True, color=COLORS["primary"]), col={"xs": 12, "md": 3}),
-                        ft.Container(content=cell(i.concepto), col={"xs": 12, "md": 4}),
-                        ft.Container(content=cell(i.fecha, color=COLORS["text_secondary"]), col={"xs": 6, "md": 2}),
-                        ft.Container(content=cell(fmt(i.importe), bold=True), col={"xs": 6, "md": 2}),
+                        ft.Container(content=celda(i.origen, bold=True, color=COLORS["primary"]), col={"xs": 12, "md": 3}),
+                        ft.Container(content=celda(i.concepto), col={"xs": 12, "md": 4}),
+                        ft.Container(content=celda(i.fecha, color=COLORS["text_secondary"]), col={"xs": 6, "md": 2}),
+                        ft.Container(content=celda(fmt(i.importe), bold=True), col={"xs": 6, "md": 2}),
                         ft.Container(
                             content=ft.Row([
-                                badge("Cobrado" if i.estado == "cobrado" else "Pendiente",
+                                etiqueta("Cobrado" if i.estado == "cobrado" else "Pendiente",
                                       "success" if i.estado == "cobrado" else "warning"),
-                                make_actions(i.id)
+                                accion(i.id)
                             ], spacing=8, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                             col={"xs": 6, "md": 1}
                         ),
@@ -137,6 +140,7 @@ def IngresosView(db: Database, navigate) -> ft.Container:
 
     #FILTROS DE BUSQUEDA
     def make_tab(label, val):
+        """Crea los pequeños botones encima de la tabla para filtrar por 'Todos', 'Cobrados' o 'Pendientes'."""
         def on_click(e):
             filtro_estado["val"] = val
             render_list()
@@ -153,12 +157,13 @@ def IngresosView(db: Database, navigate) -> ft.Container:
     ])
 
     def nuevo_ingreso(e):
+        """Nos lleva a la pantalla para añadir un ingreso nuevo."""
         navigate("form_ingreso")
 
     content = ft.Column([
         ft.Row([
             section_header("Ingresos", "Gestiona tus fuentes de ingresos"),
-            btn_primary("Nuevo Ingreso", on_click=nuevo_ingreso, icon=ft.Icons.ADD),
+            btn_primario("Nuevo Ingreso", on_click=nuevo_ingreso, icon=ft.Icons.ADD),
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         ft.Container(height=16),
         tabs,
@@ -166,4 +171,4 @@ def IngresosView(db: Database, navigate) -> ft.Container:
         card(list_col, padding=0, radius=12),
     ], spacing=0, scroll=ft.ScrollMode.AUTO, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
-    return page_wrapper(content)
+    return responsive(content)

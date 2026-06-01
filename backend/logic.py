@@ -2,9 +2,11 @@ from typing import List, Dict, Tuple
 from backend.models import Ingreso, Gasto
 
 def fmt(n: float) -> str:
+    """Formatea un número con separadores de miles y decimales estilo europeo."""
     return f"{n:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
 
 def calcular_resumen(ingresos: List[Ingreso], gastos: List[Gasto]) -> Dict:
+    """Calcula los totales globales de ingresos, gastos y beneficio neto."""
     total_ing = sum(f.importe for f in ingresos)
     total_gas = sum(g.importe for g in gastos)
     beneficio = total_ing - total_gas
@@ -16,6 +18,7 @@ def calcular_resumen(ingresos: List[Ingreso], gastos: List[Gasto]) -> Dict:
     }
 
 def calcular_trimestre(ingresos: List[Ingreso], gastos: List[Gasto], t: int) -> Dict:
+    """Agrupa los ingresos y gastos de un trimestre específico y devuelve su balance."""
     i_t = [f for f in ingresos if f.trimestre == t]
     g_t = [g for g in gastos   if g.trimestre == t]
     base_i  = sum(f.importe for f in i_t)
@@ -29,18 +32,21 @@ def calcular_trimestre(ingresos: List[Ingreso], gastos: List[Gasto], t: int) -> 
     }
 
 def ingresos_por_mes(ingresos: List[Ingreso]) -> List[float]:
+    """Suma los ingresos mes a mes y devuelve una lista de 12 posiciones (Enero a Diciembre)."""
     meses = [0.0] * 12
     for f in ingresos:
         meses[f.month - 1] += f.importe
     return meses
 
 def gastos_por_mes(gastos: List[Gasto]) -> List[float]:
+    """Suma los gastos mes a mes y devuelve una lista de 12 posiciones (Enero a Diciembre)."""
     meses = [0.0] * 12
     for g in gastos:
         meses[g.month - 1] += g.importe
     return meses
 
 def gastos_por_categoria(gastos: List[Gasto]) -> Dict[str, float]:
+    """Agrupa todos los gastos por categoría (Ocio, Alimentación, etc.) y suma sus importes."""
     resultado = {}
     for g in gastos:
         resultado[g.categoria] = resultado.get(g.categoria, 0) + g.importe

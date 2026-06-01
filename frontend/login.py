@@ -1,7 +1,8 @@
 import flet as ft
-from frontend.styles import COLORS, btn_primary, snack
+from frontend.styles import COLORS, btn_primario, snack
 
 def LoginView(db, on_login) -> ft.Container:
+    """Crea la primera pantalla que vemos al abrir la aplicación, donde ponemos nuestra contraseña o nos registramos."""
     
     is_register_mode = [False]
     
@@ -54,12 +55,13 @@ def LoginView(db, on_login) -> ft.Container:
         label_style=ft.TextStyle(color=COLORS["text_secondary"], size=13),
         content_padding=ft.Padding.symmetric(horizontal=16, vertical=12),
         visible=False,
-        on_submit=lambda e: handle_action(e),
+        on_submit=lambda e: validar_accion(e),
     )
 
     title_text = ft.Text("Inicia sesión para gestionar tu negocio", size=14, color=COLORS["text_secondary"])
 
-    def handle_action(e):
+    def validar_accion(e):
+        """Comprueba que hayamos rellenado todo bien al darle al botón de entrar o de crear cuenta."""
         if not username.value or not password.value:
             snack(e.page, "Por favor, rellena todos los campos.", ok=False)
             return
@@ -101,7 +103,8 @@ def LoginView(db, on_login) -> ft.Container:
             else:
                 snack(e.page, "Usuario o contraseña incorrectos", ok=False)
 
-    def toggle_mode(e):
+    def cambiar_login_registro(e):
+        """Cambia la pantalla para que podamos elegir entre entrar a nuestra cuenta o crear una nueva, enseñando o escondiendo los huecos que hagan falta."""
         is_register_mode[0] = not is_register_mode[0]
         if is_register_mode[0]:
             title_text.value = "Crea una cuenta nueva"
@@ -132,12 +135,12 @@ def LoginView(db, on_login) -> ft.Container:
         margin=ft.Margin(bottom=32, top=0, left=0, right=0)
     )
 
-    btn_action = btn_primary("Iniciar Sesión", on_click=handle_action, icon=ft.Icons.LOGIN)
+    btn_action = btn_primario("Iniciar Sesión", on_click=validar_accion, icon=ft.Icons.LOGIN)
     
     btn_toggle = ft.OutlinedButton(
         "Registrarse",
         icon=ft.Icons.PERSON_ADD_OUTLINED,
-        on_click=toggle_mode,
+        on_click=cambiar_login_registro,
         style=ft.ButtonStyle(
             color=COLORS["primary"],
             padding=ft.Padding.symmetric(horizontal=24, vertical=14),

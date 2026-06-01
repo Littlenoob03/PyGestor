@@ -72,6 +72,7 @@ class Database:
 
     # AUTENTICACIÓN DE USUARIOS
     def get_usuario(self, username, password):
+        """Busca un usuario por nombre y contraseña. Usado para iniciar sesión."""
         row = self.conn.execute(
             "SELECT * FROM usuarios WHERE username = ? AND password = ?",
             (username, password)
@@ -79,12 +80,14 @@ class Database:
         return dict(row) if row else None
 
     def get_usuario_by_id(self, id: int):
+        """Devuelve los datos de un usuario buscando por su ID interno."""
         row = self.conn.execute(
             "SELECT * FROM usuarios WHERE id = ?", (id,)
         ).fetchone()
         return dict(row) if row else None
 
     def get_usuario_by_username(self, username):
+        """Comprueba si existe un usuario con un nombre concreto, por ejemplo al registrar."""
         row = self.conn.execute(
             "SELECT * FROM usuarios WHERE username = ?",
             (username,)
@@ -92,6 +95,7 @@ class Database:
         return dict(row) if row else None
 
     def add_usuario(self, username, password, email=''):
+        """Crea un nuevo usuario en la base de datos con los datos básicos."""
         try:
             self.conn.execute(
                 "INSERT INTO usuarios (username, password, email, telefono, foto, plan) VALUES (?, ?, ?, '', '', 'Plan Personal')",
@@ -103,6 +107,7 @@ class Database:
             return False
 
     def update_usuario(self, id: int, **kwargs):
+        """Actualiza los campos permitidos del perfil de un usuario (email, teléfono, foto...)."""
         allowed = {"username", "password", "email", "telefono", "foto", "plan"}
         fields  = {k: v for k, v in kwargs.items() if k in allowed}
         if not fields:
@@ -115,10 +120,9 @@ class Database:
         self.conn.commit()
         return self.get_usuario_by_id(id)
 
-    # ─────────────────────────────────────────────────────────
-    # HELPERS INTERNOS
-    # ─────────────────────────────────────────────────────────
+    # HELPERS
     def _row_to_ingreso(self, row) -> Ingreso:
+        """Convierte una fila de la tabla ingresos de la base de datos a un objeto Python 'Ingreso'."""
         return Ingreso(
             id=row["id"],
             origen=row["origen"],
@@ -130,6 +134,7 @@ class Database:
         )
 
     def _row_to_gasto(self, row) -> Gasto:
+        """Convierte una fila de la tabla gastos de la base de datos a un objeto Python 'Gasto'."""
         return Gasto(
             id=row["id"],
             descripcion=row["descripcion"],
@@ -142,6 +147,7 @@ class Database:
 
     # INGRESOS
     def add_ingreso(self, origen, concepto, fecha, importe, estado="cobrado") -> Ingreso:
+        """Añade un nuevo ingreso asociado al usuario actual en la base de datos."""
         cur = self.conn.cursor()
         uid = self.current_user_id if self.current_user_id is not None else -1
         cur.execute(
@@ -154,6 +160,7 @@ class Database:
         return self.get_ingreso(cur.lastrowid)
 
     def update_ingreso(self, id: int, **kwargs) -> Optional[Ingreso]:
+        """Actualiza los datos de un ingreso existente, como cambiar su estado o importe."""
         allowed = {"origen", "concepto", "fecha", "importe", "estado"}
         fields  = {k: v for k, v in kwargs.items() if k in allowed}
         if not fields:
@@ -168,11 +175,13 @@ class Database:
         return self.get_ingreso(id)
 
     def delete_ingreso(self, id: int):
+        """Elimina un ingreso de la base de datos de forma permanente."""
         uid = self.current_user_id if self.current_user_id is not None else -1
         self.conn.execute("DELETE FROM ingresos WHERE id = ? AND usuario_id = ?", (id, uid))
         self.conn.commit()
 
     def get_ingreso(self, id: int) -> Optional[Ingreso]:
+        """Obtiene la información detallada de un solo ingreso por su ID."""
         uid = self.current_user_id if self.current_user_id is not None else -1
         row = self.conn.execute(
             "SELECT * FROM ingresos WHERE id = ? AND usuario_id = ?", (id, uid)
@@ -181,13 +190,15 @@ class Database:
 
     @property
     def ingresos(self) -> List[Ingreso]:
+        """Devuelve todos los ingresos del usuario actual ordenados desde el más reciente."""
         uid = self.current_user_id if self.current_user_id is not None else -1
         rows = self.conn.execute(
             "SELECT * FROM ingresos WHERE usuario_id = ? ORDER BY fecha DESC", (uid,)
         ).fetchall()
         return [self._row_to_ingreso(r) for r in rows]
 
-    def ingresos_by_year(self, year: int) -> List[Ingreso]:
+    def ingresos_por_año(self, year: int) -> List[Ingreso]:
+        """Devuelve los ingresos que pertenecen a un año específico."""
         uid = self.current_user_id if self.current_user_id is not None else -1
         rows = self.conn.execute(
             "SELECT * FROM ingresos WHERE strftime('%Y', fecha) = ? AND usuario_id = ? ORDER BY fecha DESC",
@@ -195,7 +206,8 @@ class Database:
         ).fetchall()
         return [self._row_to_ingreso(r) for r in rows]
 
-    def ingresos_by_trimestre(self, year: int, t: int) -> List[Ingreso]:
+    def ingresos_por_trimestre(self, year: int, t: int) -> List[Ingreso]:
+        """Filtra y devuelve los ingresos correspondientes a un trimestre de un año concreto."""
         uid = self.current_user_id if self.current_user_id is not None else -1
         month_ranges = {1: ("01","03"), 2: ("04","06"),
                         3: ("07","09"), 4: ("10","12")}
@@ -213,6 +225,7 @@ class Database:
 
     # GASTOS
     def add_gasto(self, descripcion, categoria, fecha, importe) -> Gasto:
+        """Registra un nuevo gasto para el usuario actual."""
         cur = self.conn.cursor()
         uid = self.current_user_id if self.current_user_id is not None else -1
         cur.execute(
@@ -224,6 +237,7 @@ class Database:
         return self.get_gasto(cur.lastrowid)
 
     def update_gasto(self, id: int, **kwargs) -> Optional[Gasto]:
+        """Modifica los detalles de un gasto existente."""
         allowed = {"descripcion", "categoria", "fecha", "importe"}
         fields  = {k: v for k, v in kwargs.items() if k in allowed}
         if not fields:
@@ -238,11 +252,13 @@ class Database:
         return self.get_gasto(id)
 
     def delete_gasto(self, id: int):
+        """Elimina de forma permanente un registro de gasto."""
         uid = self.current_user_id if self.current_user_id is not None else -1
         self.conn.execute("DELETE FROM gastos WHERE id = ? AND usuario_id = ?", (id, uid))
         self.conn.commit()
 
     def get_gasto(self, id: int) -> Optional[Gasto]:
+        """Obtiene la información de un gasto individual usando su ID."""
         uid = self.current_user_id if self.current_user_id is not None else -1
         row = self.conn.execute(
             "SELECT * FROM gastos WHERE id = ? AND usuario_id = ?", (id, uid)
@@ -251,13 +267,15 @@ class Database:
 
     @property
     def gastos(self) -> List[Gasto]:
+        """Lista todos los gastos del usuario ordenados por fecha."""
         uid = self.current_user_id if self.current_user_id is not None else -1
         rows = self.conn.execute(
             "SELECT * FROM gastos WHERE usuario_id = ? ORDER BY fecha DESC", (uid,)
         ).fetchall()
         return [self._row_to_gasto(r) for r in rows]
 
-    def gastos_by_year(self, year: int) -> List[Gasto]:
+    def gastos_por_año(self, year: int) -> List[Gasto]:
+        """Devuelve únicamente los gastos de un año seleccionado."""
         uid = self.current_user_id if self.current_user_id is not None else -1
         rows = self.conn.execute(
             "SELECT * FROM gastos WHERE strftime('%Y', fecha) = ? AND usuario_id = ? ORDER BY fecha DESC",
@@ -265,7 +283,8 @@ class Database:
         ).fetchall()
         return [self._row_to_gasto(r) for r in rows]
 
-    def gastos_by_trimestre(self, year: int, t: int) -> List[Gasto]:
+    def gastos_por_trimestre(self, year: int, t: int) -> List[Gasto]:
+        """Devuelve los gastos realizados en uno de los cuatro trimestres del año indicado."""
         uid = self.current_user_id if self.current_user_id is not None else -1
         month_ranges = {1: ("01","03"), 2: ("04","06"),
                         3: ("07","09"), 4: ("10","12")}
@@ -282,10 +301,12 @@ class Database:
 
 
     # CUENTA ADMIN (PRUEBAS)
-    def seed_demo_data(self):
+    def cuenta_admin(self):
+        """Crea una cuenta de administrador de demostración si la base de datos está vacía."""
         if not self.conn.execute("SELECT 1 FROM usuarios LIMIT 1").fetchone():
             self.add_usuario("admin", "admin")
 
     # CIERRE DE CONEXIÓN
     def close(self):
+        """Cierra la conexión con la base de datos SQLite de forma segura."""
         self.conn.close()

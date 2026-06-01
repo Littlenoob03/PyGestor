@@ -2,11 +2,12 @@ import flet as ft
 from datetime import date
 from backend.database import Database
 from frontend.styles import (
-    COLORS, card, btn_primary, btn_secondary,
-    section_header, text_field, dropdown, snack, page_wrapper
+    COLORS, card, btn_primario, btn_secundario,
+    section_header, text_field, dropdown, snack, responsive
 )
 
 def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
+    """Crea la pantalla donde rellenamos los datos para apuntar un gasto nuevo o modificar uno que ya existe."""
     
     #CAMPOS DE GASTOS
     g_desc    = text_field("Descripción", "Descripción del gasto")
@@ -32,6 +33,7 @@ def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
             g_importe.value   = str(ga.importe)
 
     def guardar(e):
+        """Comprueba que todo esté bien y guarda el gasto en nuestro registro."""
         page = e.page
 
         try:
@@ -53,6 +55,7 @@ def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
             snack(page, f"Error: {ex}", ok=False)
 
     def cancelar(e):
+        """Cierra esta pantalla y nos devuelve a la lista de gastos sin guardar nada."""
         navigate("gastos")
 
     titulo = "Editar Gasto" if is_edit else "Nuevo Gasto"
@@ -63,8 +66,8 @@ def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
         ft.Row([g_importe, g_cat], spacing=16),
         ft.Container(height=24),
         ft.Row([
-            btn_secondary("Cancelar", on_click=cancelar),
-            btn_primary("Guardar Gasto", on_click=guardar, icon=ft.Icons.SAVE),
+            btn_secundario("Cancelar", on_click=cancelar),
+            btn_primario("Guardar Gasto", on_click=guardar, icon=ft.Icons.SAVE),
         ], alignment=ft.MainAxisAlignment.END, spacing=12),
     ], spacing=16)
 
@@ -78,4 +81,4 @@ def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
         ),
     ], spacing=0, scroll=ft.ScrollMode.AUTO, expand=True)
 
-    return page_wrapper(content)
+    return responsive(content)

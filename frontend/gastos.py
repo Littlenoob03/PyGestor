@@ -3,17 +3,18 @@ from datetime import datetime
 from backend.database import Database
 from backend.logic import fmt, gastos_por_categoria
 from frontend.styles import (
-    COLORS, CAT_LABELS, card, btn_primary, btn_secondary, btn_danger,
-    section_header, snack, page_wrapper
+    COLORS, CAT_LABELS, card, btn_primario, btn_secundario, btn_aviso,
+    section_header, snack, responsive
 )
 
 def GastosView(db: Database, navigate) -> ft.Container:
+    """Crea toda la pantalla de Gastos, donde vemos la lista de lo que hemos gastado y el resumen de arriba."""
     year = datetime.now().year
 
     list_col = ft.Column(spacing=0)
 
     def render_list():
-        gasts = sorted(db.gastos_by_year(year), key=lambda g: g.fecha, reverse=True)
+        gasts = sorted(db.gastos_por_año(year), key=lambda g: g.fecha, reverse=True)
         list_col.controls.clear()
 
         def th(t):
@@ -47,7 +48,8 @@ def GastosView(db: Database, navigate) -> ft.Container:
                 bg = "white" if idx % 2 == 0 else "#FAFAFA"
                 ico, lbl = CAT_LABELS.get(g.categoria, ("📦","Otros"))
 
-                def make_actions(gid):
+                def accion(gid):
+                    """Crea los pequeños botones de la derecha de cada gasto (el de editar y el de borrar)."""
                     def on_edit(e, gid=gid):
                         navigate("form_gasto", edit_id=gid)
 
@@ -58,7 +60,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
                             content=ft.Text("Esta acción no se puede deshacer.")
                         )
                         
-                        def confirm(ev):
+                        def confirmar(ev):
                             db.delete_gasto(gid)
                             dlg.open = False
                             ev.page.update()
@@ -66,13 +68,13 @@ def GastosView(db: Database, navigate) -> ft.Container:
                             render_list()
                             ev.page.update()
                             
-                        def cancel(ev):
+                        def cancelar(ev):
                             dlg.open = False
                             ev.page.update()
                             
                         dlg.actions = [
-                            ft.TextButton("Cancelar", on_click=cancel),
-                            ft.TextButton("Eliminar", on_click=confirm, style=ft.ButtonStyle(color="red")),
+                            ft.TextButton("Cancelar", on_click=cancelar),
+                            ft.TextButton("Eliminar", on_click=confirmar, style=ft.ButtonStyle(color="red")),
                         ]
                         
                         # SOLUCIÓN: Agregar al overlay y abrir correctamente
@@ -89,7 +91,8 @@ def GastosView(db: Database, navigate) -> ft.Container:
                                       icon_size=18, width=32, height=32),
                     ], spacing=0)
 
-                def cell(t, bold=False, color=None):
+                def celda(t, bold=False, color=None):
+                    """Hace que todas las palabras de la tabla de gastos tengan el mismo tipo de letra y queden bonitas."""
                     return ft.Container(
                         content=ft.Text(str(t), size=13,
                                         weight=ft.FontWeight.W_600 if bold else ft.FontWeight.NORMAL,
@@ -98,7 +101,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
 
                 row = ft.Container(
                     content=ft.ResponsiveRow([
-                        ft.Container(content=cell(g.descripcion), col={"xs": 12, "md": 4}),
+                        ft.Container(content=celda(g.descripcion), col={"xs": 12, "md": 4}),
                         ft.Container(
                             content=ft.Container(
                                 content=ft.Text(f"{ico} {lbl}", size=12),
@@ -107,9 +110,9 @@ def GastosView(db: Database, navigate) -> ft.Container:
                             ),
                             col={"xs": 6, "md": 3},
                         ),
-                        ft.Container(content=cell(g.fecha, color=COLORS["text_secondary"]), col={"xs": 6, "md": 2}),
-                        ft.Container(content=cell(fmt(g.importe), bold=True), col={"xs": 6, "md": 2}),
-                        ft.Container(content=make_actions(g.id), col={"xs": 6, "md": 1}),
+                        ft.Container(content=celda(g.fecha, color=COLORS["text_secondary"]), col={"xs": 6, "md": 2}),
+                        ft.Container(content=celda(fmt(g.importe), bold=True), col={"xs": 6, "md": 2}),
+                        ft.Container(content=accion(g.id), col={"xs": 6, "md": 1}),
                     ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
                     bgcolor=bg,
                     padding=ft.Padding.symmetric(horizontal=16, vertical=12),
@@ -119,7 +122,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
     render_list()
 
     #TARJETAS DE GASTOS POR CATEGORIAS ( ARRIBA DE LA PAGINA )
-    por_cat = gastos_por_categoria(db.gastos_by_year(year))
+    por_cat = gastos_por_categoria(db.gastos_por_año(year))
     cat_cards = ft.Row(
         controls=[
             ft.Container(
@@ -144,12 +147,13 @@ def GastosView(db: Database, navigate) -> ft.Container:
     )
 
     def nuevo_gasto(e):
+        """Nos lleva a la pantalla para añadir un gasto nuevo."""
         navigate("form_gasto")
 
     content = ft.Column([
         ft.Row([
             section_header("Gastos", "Controla tus gastos personales"),
-            btn_primary("Nuevo Gasto", on_click=nuevo_gasto, icon=ft.Icons.ADD),
+            btn_primario("Nuevo Gasto", on_click=nuevo_gasto, icon=ft.Icons.ADD),
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         ft.Container(height=16),
         cat_cards,
@@ -157,4 +161,4 @@ def GastosView(db: Database, navigate) -> ft.Container:
         card(list_col, padding=0, radius=12),
     ], spacing=0, scroll=ft.ScrollMode.AUTO, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
-    return page_wrapper(content)
+    return responsive(content)

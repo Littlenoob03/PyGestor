@@ -2,11 +2,12 @@ import flet as ft
 from datetime import date
 from backend.database import Database
 from frontend.styles import (
-    COLORS, card, btn_primary, btn_secondary,
-    section_header, text_field, dropdown, snack, page_wrapper
+    COLORS, card, btn_primario, btn_secundario,
+    section_header, text_field, dropdown, snack, responsive
 )
 
 def FormularioIngresoView(db: Database, navigate, edit_id=None) -> ft.Container:
+    """Crea la pantalla donde rellenamos los datos para apuntar un ingreso nuevo o modificar uno que ya existe."""
     
     #CAMPOS DE INGRESOS
     f_origen   = dropdown("Fuente / Origen", [
@@ -37,6 +38,7 @@ def FormularioIngresoView(db: Database, navigate, edit_id=None) -> ft.Container:
             f_estado.value   = ing.estado
 
     def guardar(e):
+        """Comprueba que todo esté bien y guarda el ingreso en nuestro registro."""
         page = e.page
         try:
             data = dict(
@@ -58,6 +60,7 @@ def FormularioIngresoView(db: Database, navigate, edit_id=None) -> ft.Container:
             snack(page, f"Error: {ex}", ok=False)
 
     def cancelar(e):
+        """Cierra esta pantalla y nos devuelve a la lista de ingresos sin guardar nada."""
         navigate("ingresos")
 
     titulo = "Editar Ingreso" if is_edit else "Nuevo Ingreso"
@@ -69,8 +72,8 @@ def FormularioIngresoView(db: Database, navigate, edit_id=None) -> ft.Container:
         ft.Row([f_importe, f_estado], spacing=16),
         ft.Container(height=24),
         ft.Row([
-            btn_secondary("Cancelar", on_click=cancelar),
-            btn_primary("Guardar Ingreso", on_click=guardar, icon=ft.Icons.SAVE),
+            btn_secundario("Cancelar", on_click=cancelar),
+            btn_primario("Guardar Ingreso", on_click=guardar, icon=ft.Icons.SAVE),
         ], alignment=ft.MainAxisAlignment.END, spacing=12),
     ], spacing=16)
 
@@ -84,4 +87,4 @@ def FormularioIngresoView(db: Database, navigate, edit_id=None) -> ft.Container:
         ),
     ], spacing=0, scroll=ft.ScrollMode.AUTO, expand=True)
 
-    return page_wrapper(content)
+    return responsive(content)

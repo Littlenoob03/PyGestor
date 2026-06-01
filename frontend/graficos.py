@@ -62,8 +62,20 @@ def euro_fmt(x, pos):
 
 
 # GRAFICO 1: EVOLUCION MENSUAL DE INGRESOS Y GASTOS
-def line_chart_mensual(ing_mes: list, gast_mes: list,
+def grafico_mensual_lineas(ing_mes: list, gast_mes: list,
                        meses: list, width_px=560, height_px=220) -> str:
+    """
+    Dibuja el gráfico de líneas que usamos para ver cómo suben o bajan nuestros ingresos y gastos a lo largo del año.
+    
+    EXPLICACIÓN DIDÁCTICA DE MATPLOTLIB:
+    1. 'plt.subplots()' crea una figura (el lienzo en blanco) y unos 'axes' (el área donde se dibuja).
+       El tamaño se ajusta según los píxeles deseados convertidos a pulgadas.
+    2. 'ax.plot()' dibuja la línea principal conectando los puntos (meses en X, importes en Y).
+    3. 'ax.fill_between()' rellena suavemente el área por debajo de la línea para darle un toque moderno.
+    4. Se personalizan los ejes (ax.set_xticks, ax.set_xticklabels) para mostrar los nombres de los meses.
+    5. 'FuncFormatter(euro_fmt)' asegura que los números en el eje vertical (Y) se lean como '1k€' en lugar de '1000'.
+    6. Al final, '_to_b64(fig)' toma esa imagen generada en memoria, la convierte a Base64 y la devuelve a Flet.
+    """
     fig, ax = plt.subplots(figsize=(width_px / 130, height_px / 130))
 
     x = range(12)
@@ -90,8 +102,9 @@ def line_chart_mensual(ing_mes: list, gast_mes: list,
 
 
 #GRAFICO 2: DISTRIBUCIÓN DE GASTOS (DONUT)
-def donut_chart_gastos(por_cat: dict, labels_map: dict,
+def grafico_donut_gastos(por_cat: dict, labels_map: dict,
                        width_px=260, height_px=220) -> str:
+    """Dibuja el gráfico circular (como un donut) que nos enseña en qué categorías hemos gastado más dinero."""
     if not por_cat:
         fig, ax = plt.subplots(figsize=(width_px / 130, height_px / 130))
         ax.text(0.5, 0.5, "Sin datos", ha="center", va="center",
@@ -129,8 +142,9 @@ def donut_chart_gastos(por_cat: dict, labels_map: dict,
 
 
 # GRAFICO 3: INGRESOS VS GASTOS MENSUALES (BARRAS)
-def bar_chart_ingresos_gastos(ing_mes: list, gast_mes: list, meses: list,
-                              width_px=480, height_px=240) -> str:
+def grafico_ingresos_gastos(ing_mes: list, gast_mes: list, meses: list,
+                               width_px=480, height_px=240) -> str:
+    """Dibuja el gráfico de barras que pone los ingresos y los gastos de cada mes uno al lado del otro para compararlos fácil."""
     if not any(ing_mes) and not any(gast_mes):
         fig, ax = plt.subplots(figsize=(width_px / 130, height_px / 130))
         ax.text(0.5, 0.5, "Sin datos", ha="center", va="center",
@@ -160,8 +174,9 @@ def bar_chart_ingresos_gastos(ing_mes: list, gast_mes: list, meses: list,
 
 
 # GRAFICO 4: COMPARATIVA TRIMESTRAL (BARRAS)
-def bar_chart_trimestral(trimestres: list,
+def grafico_trimestral(trimestres: list,
                          width_px=560, height_px=240) -> str:
+    """Dibuja el gráfico de barras separado en los 4 trimestres del año (T1, T2, T3 y T4)."""
     import numpy as np
 
     t_names = ["T1", "T2", "T3", "T4"]

@@ -7,17 +7,17 @@ from backend.logic import (
 )
 from frontend.styles import (
     COLORS, GRADIENTS, MESES, CAT_LABELS,
-    gradient_stat_card, card, section_header,
-    divider, badge, page_wrapper,
+    tarjetas_informativas, card, section_header,
+    separador, etiqueta, responsive,
 )
 from frontend.graficos import (
-    line_chart_mensual, donut_chart_gastos,
+    grafico_mensual_lineas, grafico_donut_gastos,
 )
 
 def DashboardView(db: Database, navigate) -> ft.Container:
     year     = datetime.now().year
-    ingresos = db.ingresos_by_year(year)
-    gastos   = db.gastos_by_year(year)
+    ingresos = db.ingresos_por_año(year)
+    gastos   = db.gastos_por_año(year)
     res      = calcular_resumen(ingresos, gastos)
 
     #TARJETAS DEL DASHBOARD (INGRESOS, GASTOS Y AHORRO NETO)
@@ -30,7 +30,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
          GRADIENTS[2], ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED),
     ]
     kpis = ft.ResponsiveRow([
-        ft.Container(content=gradient_stat_card(t, v, s, ga, gb, icon=ic), col={"xs": 12, "md": 4})
+        ft.Container(content=tarjetas_informativas(t, v, s, ga, gb, icon=ic), col={"xs": 12, "md": 4})
         for t, v, s, (ga, gb), ic in kpi_data
     ], spacing=16)
 
@@ -38,7 +38,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
     ing_mes  = ingresos_por_mes(ingresos)
     gast_mes = gastos_por_mes(gastos)
 
-    line_b64 = line_chart_mensual(ing_mes, gast_mes, MESES,
+    line_b64 = grafico_mensual_lineas(ing_mes, gast_mes, MESES,
                                    width_px=1000, height_px=350)
 
     grafico = card(
@@ -63,7 +63,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
 
     #GRAFICO DE GASTOS POR CATEGORIA (DONUT)
     por_cat  = gastos_por_categoria(gastos)
-    donut_b64 = donut_chart_gastos(por_cat, CAT_LABELS,
+    donut_b64 = grafico_donut_gastos(por_cat, CAT_LABELS,
                                     width_px=600, height_px=350)
 
     gastos_chart = card(
@@ -104,7 +104,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
                     ft.Text(fmt(i.total), size=13,
                             weight=ft.FontWeight.BOLD,
                             color=COLORS["text_primary"]),
-                    badge("Cobrado" if i.estado == "cobrado" else "Pendiente",
+                    etiqueta("Cobrado" if i.estado == "cobrado" else "Pendiente",
                           "success" if i.estado == "cobrado" else "warning"),
                 ], spacing=4,
                    horizontal_alignment=ft.CrossAxisAlignment.END),
@@ -145,4 +145,4 @@ def DashboardView(db: Database, navigate) -> ft.Container:
         ingresos_list,
     ], spacing=0, scroll=ft.ScrollMode.AUTO)
 
-    return page_wrapper(content)
+    return responsive(content)

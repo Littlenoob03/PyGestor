@@ -6,16 +6,17 @@ from backend.logic import (
     calcular_trimestre, ingresos_por_mes, gastos_por_mes
 )
 from frontend.styles import (
-    COLORS, CAT_LABELS, MESES, card, section_header, page_wrapper,
+    COLORS, CAT_LABELS, MESES, card, section_header, responsive,
 )
 from frontend.graficos import (
-    bar_chart_ingresos_gastos, donut_chart_gastos, bar_chart_trimestral,
+    grafico_ingresos_gastos, grafico_donut_gastos, grafico_trimestral,
 )
 
 def InformesView(db: Database, navigate) -> ft.Container:
+    """Crea la pantalla de Informes donde podemos ver cómo nos va el año con gráficos."""
     year     = datetime.now().year
-    ingresos = db.ingresos_by_year(year)
-    gastos   = db.gastos_by_year(year)
+    ingresos = db.ingresos_por_año(year)
+    gastos   = db.gastos_por_año(year)
 
     #RESUMEN ANUAL
     total_ingresos = sum(i.importe for i in ingresos)
@@ -29,12 +30,12 @@ def InformesView(db: Database, navigate) -> ft.Container:
                     weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
             ft.Container(height=12),
             ft.ResponsiveRow([
-                ft.Container(content=_kpi_mini("Total Ingresos",   fmt(total_ingresos), COLORS["stat1"]), col={"xs": 6, "sm": 4, "lg": 2}),
-                ft.Container(content=_kpi_mini("Total Gastos",     fmt(total_gastos_v), COLORS["danger"]), col={"xs": 6, "sm": 4, "lg": 2}),
-                ft.Container(content=_kpi_mini("Ahorro Neto",      fmt(beneficio_neto), COLORS["success"]), col={"xs": 6, "sm": 4, "lg": 2}),
-                ft.Container(content=_kpi_mini("Margen",           f"{tasa_beneficio:.1f} %", COLORS["stat4"]), col={"xs": 6, "sm": 4, "lg": 2}),
-                ft.Container(content=_kpi_mini("Nº Ingresos",      str(len(ingresos)),  COLORS["stat1"]), col={"xs": 6, "sm": 4, "lg": 2}),
-                ft.Container(content=_kpi_mini("Nº Gastos",        str(len(gastos)),    COLORS["stat3"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=mini_tarjetas("Total Ingresos",   fmt(total_ingresos), COLORS["stat1"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=mini_tarjetas("Total Gastos",     fmt(total_gastos_v), COLORS["danger"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=mini_tarjetas("Ahorro Neto",      fmt(beneficio_neto), COLORS["success"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=mini_tarjetas("Margen",           f"{tasa_beneficio:.1f} %", COLORS["stat4"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=mini_tarjetas("Nº Ingresos",      str(len(ingresos)),  COLORS["stat1"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=mini_tarjetas("Nº Gastos",        str(len(gastos)),    COLORS["stat3"]), col={"xs": 6, "sm": 4, "lg": 2}),
             ], spacing=12),
         ], spacing=0),
     )
@@ -42,7 +43,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
     #GRAFICO INGRESOS VS GASTOS ( BARRAS )
     ing_mes  = ingresos_por_mes(ingresos)
     gast_mes = gastos_por_mes(gastos)
-    cl_b64 = bar_chart_ingresos_gastos(ing_mes, gast_mes, MESES, width_px=1000, height_px=350)
+    cl_b64 = grafico_ingresos_gastos(ing_mes, gast_mes, MESES, width_px=1000, height_px=350)
 
     mensual_chart = card(
         ft.Column([
@@ -57,7 +58,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
 
     #GRAFICO GASTOS POR CATEGORIA (DONUT)
     por_cat  = gastos_por_categoria(gastos)
-    donut_b64 = donut_chart_gastos(por_cat, CAT_LABELS,
+    donut_b64 = grafico_donut_gastos(por_cat, CAT_LABELS,
                                     width_px=600, height_px=350)
 
     gastos_chart = card(
@@ -73,9 +74,10 @@ def InformesView(db: Database, navigate) -> ft.Container:
 
     #GRAFICO COMPARATIVA TRIMESTRAL (BARRAS)
     trimestres = [calcular_trimestre(ingresos, gastos, t) for t in [1, 2, 3, 4]]
-    trim_b64 = bar_chart_trimestral(trimestres, width_px=1200, height_px=400)
+    trim_b64 = grafico_trimestral(trimestres, width_px=1200, height_px=400)
 
-    def trim_table():
+    def tabla_trimestral():
+        """Crea la tablita pequeña donde salen los números totales de cada trimestre."""
         rows = [
             ft.Container(
                 content=ft.Row([
@@ -130,7 +132,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
                 ft.Container(
                     content=ft.Column([
                         ft.Text("Detalle Acumulado", weight=ft.FontWeight.BOLD, size=13, color=COLORS["text_primary"]),
-                        trim_table()
+                        tabla_trimestral()
                     ], spacing=12),
                     col={"xs": 12, "lg": 5},
                     padding=ft.Padding.only(top=20)
@@ -152,10 +154,11 @@ def InformesView(db: Database, navigate) -> ft.Container:
         trimestral_chart,
     ], spacing=0, scroll=ft.ScrollMode.AUTO, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
-    return page_wrapper(content)
+    return responsive(content)
 
 
-def _kpi_mini(label: str, value: str, color: str) -> ft.Container:
+def mini_tarjetas(label: str, value: str, color: str) -> ft.Container:
+    """Crea los recuadros pequeños de arriba con los totales rápidos (como el beneficio o el número de ingresos)."""
     return ft.Container(
         content=ft.Column([
             ft.Text(label, size=11, color="#64748B"),

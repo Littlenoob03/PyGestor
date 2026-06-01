@@ -10,6 +10,17 @@ from frontend.perfil import PerfilView
 from backend.database import Database
 
 def main(page: ft.Page):
+    """
+    Función principal que arranca la aplicación PyGestor.
+    
+    EXPLICACIÓN DIDÁCTICA (Elementos usados en esta app):
+    1. ft.Page: Es la ventana de la aplicación. Nos permite poner un título, cambiar el color de fondo y actualizar lo que se ve.
+    2. ft.Container: Es como una "caja" donde metemos cosas. Le podemos dar color de fondo, redondearle los bordes o hacerla más grande.
+    3. ft.Column / ft.Row: Sirven para ordenar esas cajas. 'Column' las pone en lista de arriba a abajo, y 'Row' las pone en fila de izquierda a derecha.
+    4. ft.Text / ft.Image / ft.Icon: Sirven para mostrar texto, fotos e iconos decorativos.
+    5. COLORS: Aunque no es de Flet, es un diccionario propio donde guardamos nuestros colores favoritos para no tener que escribirlos todo el rato (ej: COLORS["primary"]).
+    6. ft.app(): Es el motor que enciende la aplicación y la muestra en la pantalla de nuestro ordenador.
+    """
     page.title = "PyGestor"
     page.theme_mode = ft.ThemeMode.LIGHT
     page.padding = 0
@@ -28,12 +39,13 @@ def main(page: ft.Page):
     page.theme = ft.Theme(font_family="Inter")
 
     db = Database()
-    db.seed_demo_data()
+    db.cuenta_admin()
 
     current_view = {"name": "dashboard"}
     content_area = ft.Container(expand=True)
 
     def navigate(view_name: str, **kwargs):
+        """Se encarga de cambiar la pantalla que estamos viendo, borrando lo anterior y poniendo el nuevo contenido."""
         current_view["name"] = view_name
         render_view(view_name, **kwargs)
         update_nav(view_name)
@@ -42,6 +54,7 @@ def main(page: ft.Page):
         page.update()
 
     def render_view(view_name: str, **kwargs):
+        """Prepara y dibuja la sección de la app que el usuario ha pedido ver."""
         views = {
             "dashboard": lambda: DashboardView(db, navigate),
             "ingresos":  lambda: IngresosView(db, navigate),
@@ -64,7 +77,8 @@ def main(page: ft.Page):
 
     nav_buttons = {}
 
-    def make_nav_button(key, icon, label):
+    def boton_sidebar(key, icon, label):
+        """Crea un botón para usarlo en el menú de la izquierda."""
         btn = ft.Container(
             content=ft.Row([
                 ft.Icon(icon, size=18, color="white"),
@@ -80,6 +94,7 @@ def main(page: ft.Page):
         return btn
 
     def update_nav(active: str):
+        """Pinta el botón del menú de otro color para que sepamos en qué pantalla estamos."""
         for key, btn in nav_buttons.items():
             if key == active:
                 btn.bgcolor = ft.Colors.with_opacity(0.18, "white")
@@ -115,7 +130,7 @@ def main(page: ft.Page):
             #BOTONES DE REDIRECCION ( GASTOS, INGRESOS, INFORMES Y DASHBOARD)
             ft.Container(
                 content=ft.Column([
-                    make_nav_button(k, i, l) for k, i, l in nav_items
+                    boton_sidebar(k, i, l) for k, i, l in nav_items
                 ], spacing=2),
                 padding=ft.Padding.symmetric(horizontal=10),
             ),
@@ -138,6 +153,7 @@ def main(page: ft.Page):
     sidebar_plan = ft.Text("Plan Personal", size=11, color="#A5B4FC")
 
     def refresh_sidebar():
+        """Actualiza el menú de la izquierda para mostrar nuestra foto y nombre si hemos iniciado sesión."""
         if not db.current_user_id:
             sidebar_initials.value = "?"
             sidebar_username.value = "Desconectado"
@@ -172,7 +188,7 @@ def main(page: ft.Page):
                 icon_color=ft.Colors.with_opacity(0.7, "white"),
                 items=[
                     ft.PopupMenuItem(content=ft.Text("Mi Perfil"), icon=ft.Icons.PERSON_OUTLINE, on_click=lambda _: navigate("perfil")),
-                    ft.PopupMenuItem(content=ft.Text("Cerrar Sesión"), icon=ft.Icons.LOGOUT, on_click=lambda _: logout()),
+                    ft.PopupMenuItem(content=ft.Text("Cerrar Sesión"), icon=ft.Icons.LOGOUT, on_click=lambda _: cerrar_sesion()),
                 ]
             ),
         ], spacing=10, alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
@@ -197,6 +213,7 @@ def main(page: ft.Page):
     )
     
     def toggle_sidebar(e):
+        """Abre o cierra el menú de la izquierda cuando estamos en movil."""
         if sidebar_container.offset.x == -1:
             sidebar_container.offset.x = 0
             overlay_bg.visible = True
@@ -229,6 +246,7 @@ def main(page: ft.Page):
     ], expand=True)
 
     def page_resize(e):
+        """Detecta si la ventana del programa se hace grande o pequeña y ajusta el menú para que encaje bien."""
         if page.width < 768:
             sidebar_spacer.visible = False
             page.appbar.visible = True
@@ -243,7 +261,8 @@ def main(page: ft.Page):
 
     page.on_resize = page_resize
 
-    def on_login(user_id: int):
+    def iniciar_sesion(user_id: int):
+        """Se ejecuta cuando introducimos bien el usuario y contraseña. Carga el menú principal y nos deja entrar."""
         db.current_user_id = user_id
         refresh_sidebar()
         page.controls.clear()
@@ -251,16 +270,17 @@ def main(page: ft.Page):
         navigate("dashboard")
         page_resize(None)
 
-    def logout():
+    def cerrar_sesion():
+        """Borra nuestra información temporal y nos devuelve a la pantalla para poner la contraseña."""
         db.current_user_id = None
         page.controls.clear()
-        page.add(LoginView(db, on_login))
+        page.add(LoginView(db, iniciar_sesion))
         page.update()
 
-    page.logout = logout
+    page.logout = cerrar_sesion
 
     #INICIALIZAR CON LOGIN
-    page.add(LoginView(db, on_login))
+    page.add(LoginView(db, iniciar_sesion))
 
 
 if __name__ == "__main__":

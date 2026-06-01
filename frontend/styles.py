@@ -1,6 +1,6 @@
 import flet as ft
 
-# ── Colores ────────────────────────────────────────────────
+# COLORES
 COLORS = {
     "primary":        "#1E1977",
     "primary_dark":   "#131054",
@@ -26,7 +26,7 @@ COLORS = {
     "stat4":  "#F59E0B",
 }
 
-# Pares de gradientes semánticos para las tarjetas KPI
+# COLORES DEGRADADOS O GRADIANTES
 GRADIENTS = [
     ("#3B82F6", "#2563EB"),
     ("#8B5CF6", "#6D28D9"),
@@ -34,7 +34,7 @@ GRADIENTS = [
     ("#F59E0B", "#D97706"),
 ]
 
-# Paleta para gráficos (PieChart, BarChart, etc.)
+# COLORES PARA GRAFICOS
 CHART_COLORS = [
     "#3B82F6", "#10B981", "#F59E0B",
     "#DC2626", "#14B8A6", "#8B5CF6",
@@ -59,10 +59,10 @@ MESES = ["Ene","Feb","Mar","Abr","May","Jun",
          "Jul","Ago","Sep","Oct","Nov","Dic"]
 
 
-# ── Helpers de componentes ─────────────────────────────────
+# HELPRES
 
 def card(content, padding=20, radius=16, expand=False, width=None) -> ft.Container:
-    """Tarjeta blanca con sombra suave, sin borde visible."""
+    """Crea un recuadro blanco con una pequeña sombra para que parezca que flota en la pantalla."""
     return ft.Container(
         content=content,
         bgcolor=COLORS["surface"],
@@ -78,11 +78,11 @@ def card(content, padding=20, radius=16, expand=False, width=None) -> ft.Contain
         width=width,
     )
 
-
-def gradient_stat_card(title: str, value: str, subtitle: str,
+# COLORES DE LAS TARJETAS INFORMATIVAS
+def tarjetas_informativas(title: str, value: str, subtitle: str,
                        grad_a: str, grad_b: str,
                        icon=None) -> ft.Container:
-    """Tarjeta KPI con gradiente diagonal y sombra de color."""
+    """Crea las tarjetas de colores que vemos en la pantalla principal con los totales de ingresos y gastos."""
     return ft.Container(
         content=ft.Column([
             ft.Row([
@@ -126,11 +126,13 @@ def gradient_stat_card(title: str, value: str, subtitle: str,
     )
 
 
-def stat_card(title, value, subtitle, color, icon):
-    return gradient_stat_card(title, value, subtitle, color, color)
+def tarjeta_stat(title, value, subtitle, color, icon):
+    """Crea una tarjeta de color básico apoyándose en las tarjetas de colores de arriba."""
+    return tarjetas_informativas(title, value, subtitle, color, color)
 
 
-def btn_primary(text, on_click=None, icon=None, width=None):
+def btn_primario(text, on_click=None, icon=None, width=None):
+    """Crea un botón normal, relleno de color y con el texto en blanco, ideal para la acción principal."""
     inner = ft.Row(
         [
             ft.Icon(icon, size=16, color="white") if icon else ft.Container(),
@@ -153,7 +155,8 @@ def btn_primary(text, on_click=None, icon=None, width=None):
     )
 
 
-def btn_danger(text: str, on_click=None) -> ft.OutlinedButton:
+def btn_aviso(text: str, on_click=None) -> ft.OutlinedButton:
+    """Crea un botón rojo, usado para avisar de peligro, como cuando vas a borrar algo."""
     return ft.OutlinedButton(
         content=ft.Text(text),
         on_click=on_click,
@@ -165,7 +168,8 @@ def btn_danger(text: str, on_click=None) -> ft.OutlinedButton:
     )
 
 
-def btn_secondary(text, on_click=None, icon=None, width=None):
+def btn_secundario(text, on_click=None, icon=None, width=None):
+    """Crea un botón transparente que solo tiene el borde de color, para acciones que no son la principal."""
     inner_controls = []
     if icon:
         inner_controls.append(ft.Icon(icon, size=16, color=COLORS["primary"]))
@@ -189,7 +193,8 @@ def btn_secondary(text, on_click=None, icon=None, width=None):
     )
 
 
-def badge(text: str, kind: str = "default") -> ft.Container:
+def etiqueta(text: str, kind: str = "default") -> ft.Container:
+    """Crea un pequeñO check de color para marcar si algo está 'Cobrado' o 'Pendiente'."""
     palettes = {
         "success": (COLORS["success_bg"],  COLORS["success_text"]),
         "danger":  (COLORS["danger_bg"],   COLORS["danger_text"]),
@@ -207,6 +212,7 @@ def badge(text: str, kind: str = "default") -> ft.Container:
 
 
 def section_header(title: str, subtitle: str = "") -> ft.Column:
+    """Crea los títulos grandes que vemos al principio de cada pantalla."""
     children = [
         ft.Text(title, size=24, weight=ft.FontWeight.BOLD,
                 color=COLORS["text_primary"]),
@@ -216,13 +222,15 @@ def section_header(title: str, subtitle: str = "") -> ft.Column:
     return ft.Column(children, spacing=2)
 
 
-def divider() -> ft.Divider:
+def separador() -> ft.Divider:
+    """Dibuja una fina línea horizontal gris para separar secciones visualmente."""
     return ft.Divider(color=COLORS["border"], height=1)
 
 
 def text_field(label: str, hint: str = "", value: str = "",
                keyboard_type=ft.KeyboardType.TEXT,
                on_change=None, password=False, expand=False) -> ft.TextField:
+    """Crea los recuadros donde escribimos texto en los formularios (como al añadir un gasto)."""
     return ft.TextField(
         label=label, hint_text=hint, value=value,
         keyboard_type=keyboard_type,
@@ -239,6 +247,7 @@ def text_field(label: str, hint: str = "", value: str = "",
 
 
 def dropdown(label, options, value=None, on_change=None):
+    """Crea una cajita donde puedes pinchar y se despliega una lista de opciones para elegir."""
     dd = ft.Dropdown(
         label=label,
         value=value,
@@ -253,6 +262,7 @@ def dropdown(label, options, value=None, on_change=None):
 
 
 def snack(page: ft.Page, msg: str, ok: bool = True):
+    """Muestra un pequeño aviso en la parte de abajo de la pantalla que desaparece solo (en verde si todo ha ido bien, rojo si hay error)."""
     sb = ft.SnackBar(
         content=ft.Text(msg, color="white"),
         bgcolor=COLORS["success"] if ok else COLORS["danger"],
@@ -263,8 +273,8 @@ def snack(page: ft.Page, msg: str, ok: bool = True):
     page.update()
 
 
-def page_wrapper(content) -> ft.Container:
-    """Envuelve el contenido de una vista con scroll y padding."""
+def responsive(content) -> ft.Container:
+    """Hace que el contenido de la pantalla se adapte al tamaño de la ventana y añade la barra para bajar si la página es muy larga."""
     return ft.Container(
         content=ft.Column(
             controls=[content] if not isinstance(content, list) else content,

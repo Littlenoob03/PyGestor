@@ -2,9 +2,10 @@ import flet as ft
 import os
 import shutil
 from backend.database import Database
-from frontend.styles import COLORS, btn_primary, card, section_header, text_field, page_wrapper, snack
+from frontend.styles import COLORS, btn_primario, card, section_header, text_field, responsive, snack
 
 def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
+    """Genera la vista del perfil del usuario, permitiendo editar datos personales, foto y ver su suscripción."""
     user_id = db.current_user_id
     if user_id is None:
         return ft.Container(content=ft.Text("Inicia sesión para ver tu perfil."))
@@ -37,7 +38,8 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
         visible=not bool(user.get("foto"))
     )
 
-    def update_avatar_ui(foto_name):
+    def cambio_foto_perfil(foto_name):
+        """Actualiza la interfaz de usuario para mostrar la nueva foto o las iniciales si no hay foto."""
         if foto_name:
             avatar_image.src = f"imagenes/{foto_name}"
             avatar_image.visible = True
@@ -51,15 +53,17 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
     f_foto = text_field("Nombre de la imagen", "ej: mi_foto.png", value=user.get("foto", ""))
 
     def guardar_foto_manual(e):
+        """Guarda la nueva foto que hemos escrito y nos avisa de que se ha cambiado correctamente."""
         foto_name = f_foto.value.strip()
         db.update_usuario(user_id, foto=foto_name)
-        update_avatar_ui(foto_name)
+        cambio_foto_perfil(foto_name)
         refresh_sidebar()
         dialog.open = False
         e.page.update()
         snack(e.page, "Foto de perfil actualizada ✅")
 
     def cerrar_dialog(e):
+        """Cierra la ventanita pequeña sin guardar ningún cambio."""
         dialog.open = False
         e.page.update()
 
@@ -72,16 +76,18 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
         ], tight=True),
         actions=[
             ft.TextButton(content=ft.Text("Cancelar"), on_click=cerrar_dialog),
-            btn_primary("Guardar", on_click=guardar_foto_manual)
+            btn_primario("Guardar", on_click=guardar_foto_manual)
         ]
     )
 
-    def pick_photo(e):
+    def foto(e):
+        """Abre el diálogo para que el usuario pueda escribir el nombre de su nueva foto de perfil."""
         e.page.dialog = dialog
         dialog.open = True
         e.page.update()
 
     def guardar(e):
+        """Guarda todos los datos personales que hemos escrito (nombre, email, etc.) en la base de datos."""
         try:
             db.update_usuario(
                 user_id,
@@ -95,7 +101,7 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
         except Exception as ex:
             snack(e.page, f"Error al guardar: {ex}", ok=False)
 
-    btn_upload = ft.TextButton(content=ft.Row([ft.Icon(ft.Icons.UPLOAD), ft.Text("Cambiar Foto")]), on_click=pick_photo)
+    btn_upload = ft.TextButton(content=ft.Row([ft.Icon(ft.Icons.UPLOAD), ft.Text("Cambiar Foto")]), on_click=foto)
 
     datos_personales = ft.Column([
         ft.Row([
@@ -106,13 +112,14 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
         ft.Row([f_username, f_password], spacing=16),
         ft.Row([f_email, f_telefono], spacing=16),
         ft.Container(height=20),
-        ft.Row([btn_primary("Guardar Cambios", on_click=guardar, icon=ft.Icons.SAVE)], alignment=ft.MainAxisAlignment.END)
+        ft.Row([btn_primario("Guardar Cambios", on_click=guardar, icon=ft.Icons.SAVE)], alignment=ft.MainAxisAlignment.END)
     ], spacing=16)
 
     #PLAN DE SUSBSCRIPCION
     current_plan = user.get("plan", "Plan Personal")
 
-    def create_plan_card(title, price, features, is_active):
+    def crear_tarjetas_planes(title, price, features, is_active):
+        """Crea los recuadros donde se ven los diferentes planes de pago y sus ventajas."""
         active_color = COLORS["primary"] if is_active else COLORS["text_secondary"]
         bg_color = ft.Colors.with_opacity(0.05, COLORS["primary"]) if is_active else "white"
         
@@ -134,22 +141,22 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
                     ft.Row([ft.Icon(ft.Icons.CHECK, size=16, color=COLORS["success"]), ft.Text(f, size=13)]) for f in features
                 ], spacing=8),
                 ft.Container(height=20),
-                btn_primary("Plan Actual", width=200) if is_active else ft.OutlinedButton(content=ft.Text("Mejorar Plan"), width=200, disabled=True)
+                btn_primario("Plan Actual", width=200) if is_active else ft.OutlinedButton(content=ft.Text("Mejorar Plan"), width=200, disabled=True)
             ], spacing=10),
             padding=24, radius=12
         )
 
     planes = ft.Row([
         ft.Container(
-            content=create_plan_card("Plan Personal", "Gratis", ["Gestión básica", "Hasta 100 registros", "Soporte comunitario"], current_plan == "Plan Personal"),
+            content=crear_tarjetas_planes("Plan Personal", "Gratis", ["Gestión básica", "Hasta 100 registros", "Soporte comunitario"], current_plan == "Plan Personal"),
             expand=True
         ),
         ft.Container(
-            content=create_plan_card("Plan Pro", "9.99€ / mes", ["Estadísticas avanzadas", "Registros ilimitados", "Soporte prioritario"], current_plan == "Plan Pro"),
+            content=crear_tarjetas_planes("Plan Pro", "9.99€ / mes", ["Estadísticas avanzadas", "Registros ilimitados", "Soporte prioritario"], current_plan == "Plan Pro"),
             expand=True
         ),
         ft.Container(
-            content=create_plan_card("Plan Deluxe", "19.99€ / mes", ["Exportación a PDF/Excel", "Modo multi-usuario", "Soporte 24/7"], current_plan == "Plan Deluxe"),
+            content=crear_tarjetas_planes("Plan Deluxe", "19.99€ / mes", ["Exportación a PDF/Excel", "Modo multi-usuario", "Soporte 24/7"], current_plan == "Plan Deluxe"),
             expand=True
         )
     ], spacing=20, alignment=ft.MainAxisAlignment.START, vertical_alignment=ft.CrossAxisAlignment.START)
@@ -157,7 +164,8 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
     #PESTAÑAS SUPERIORES
     active_tab = "datos"
 
-    def set_tab(tab_name):
+    def selector_pagina(tab_name):
+        """Cambia entre la pantalla de nuestros datos y la de los planes de pago."""
         nonlocal active_tab
         active_tab = tab_name
         
@@ -171,12 +179,12 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
 
     btn_datos = ft.TextButton(
         content=ft.Row([ft.Icon(ft.Icons.PERSON), ft.Text("Datos Personales")]),
-        on_click=lambda _: set_tab("datos"),
+        on_click=lambda _: selector_pagina("datos"),
         style=ft.ButtonStyle(color=COLORS["primary"])
     )
     btn_planes = ft.TextButton(
         content=ft.Row([ft.Icon(ft.Icons.STAR), ft.Text("Planes de Suscripción")]),
-        on_click=lambda _: set_tab("planes"),
+        on_click=lambda _: selector_pagina("planes"),
         style=ft.ButtonStyle(color=COLORS["text_secondary"])
     )
 
@@ -196,4 +204,4 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
         tabs
     ], expand=True)
 
-    return page_wrapper(content)
+    return responsive(content)
