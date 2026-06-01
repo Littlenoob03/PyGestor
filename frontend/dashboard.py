@@ -15,6 +15,7 @@ from frontend.graficos import (
 )
 
 def VistaDashboard(db: Database, navegar) -> ft.Container:
+    """Vista principal del dashboard con las estadísticas y gráficos"""
     year     = datetime.now().year
     ingresos = db.ingresos_por_año(year)
     gastos   = db.gastos_por_año(year)
@@ -81,6 +82,7 @@ def VistaDashboard(db: Database, navegar) -> ft.Container:
     ultimas = sorted(db.ingresos, key=lambda i: i.fecha, reverse=True)[:5]
 
     def fila_ingreso(i):
+        """Crea una fila para mostrar un ingreso"""
         nombre = i.origen if i.origen else "—"
         initials = "".join(w[0] for w in nombre.split()[:2]).upper() if nombre != "—" else "-"
         return ft.Container(

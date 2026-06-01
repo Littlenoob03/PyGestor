@@ -20,6 +20,7 @@ def VistaIngresos(db: Database, navegar) -> ft.Container:
 
     #TABLA DE INGRESOS
     def dibujar_lista():
+        """Dibuja la lista de ingresos en forma de tabla"""
         ings = [i for i in db.ingresos_por_año(year)
                  if filtro_estado["val"] == "all" or i.estado == filtro_estado["val"]]
         ings.sort(key=lambda x: x.fecha, reverse=True)

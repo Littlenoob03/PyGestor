@@ -97,7 +97,7 @@ def VistaPerfil(db: Database, navegar, actualizar_barra_lateral) -> ft.Container
                 telefono=f_telefono.value
             )
             actualizar_barra_lateral()
-            notificacion(e.page, "Datos actualizados correctamente ✅")
+            notificacion(e.page, "Datos actualizados correctamente")
         except Exception as ex:
             notificacion(e.page, f"Error al guardar: {ex}", ok=False)
 

@@ -29,7 +29,6 @@ def VistaFormularioIngreso(db: Database, navegar, edit_id=None) -> ft.Container:
     if is_edit:
         ing = db.obtener_ingreso(edit_id)
         if ing:
-            # Check if the existing value is one of our desplegable options, otherwise default to "Otros"
             valid_options = ["Nómina", "Bizum", "Transferencia", "Efectivo", "Venta", "Devolución", "Otros"]
             f_origen.value   = ing.origen if ing.origen in valid_options else "Otros"
             f_concepto.value = ing.concepto
@@ -50,10 +49,10 @@ def VistaFormularioIngreso(db: Database, navegar, edit_id=None) -> ft.Container:
             )
             if is_edit:
                 db.actualizar_ingreso(edit_id, **data)
-                notificacion(page, "Ingreso actualizado ✅")
+                notificacion(page, "Ingreso actualizado")
             else:
                 db.añadir_ingreso(**data)
-                notificacion(page, "Ingreso creado ✅")
+                notificacion(page, "Ingreso creado")
             
             navegar("ingresos")
         except Exception as ex:

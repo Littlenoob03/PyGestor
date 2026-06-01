@@ -41,6 +41,7 @@ CHART_COLORS = [
     "#06B6D4", "#F97316",
 ]
 
+# ICONOS Y TEXTOS PARA LOS GASTOS
 CAT_LABELS = {
     "oficina":      ("🖊️", "Oficina"),
     "software":     ("💻", "Software"),
@@ -55,6 +56,7 @@ CAT_LABELS = {
     "otros":        ("📦", "Otros"),
 }
 
+# MESES PARA LOS GRAFICOS
 MESES = ["Ene","Feb","Mar","Abr","May","Jun",
          "Jul","Ago","Sep","Oct","Nov","Dic"]
 

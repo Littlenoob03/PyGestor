@@ -45,10 +45,10 @@ def VistaFormularioGasto(db: Database, navegar, edit_id=None) -> ft.Container:
             )
             if is_edit:
                 db.actualizar_gasto(edit_id, **data)
-                notificacion(page, "Gasto actualizado ✅")
+                notificacion(page, "Gasto actualizado")
             else:
                 db.añadir_gasto(**data)
-                notificacion(page, "Gasto registrado ✅")
+                notificacion(page, "Gasto registrado")
             
             navegar("gastos")
         except Exception as ex:

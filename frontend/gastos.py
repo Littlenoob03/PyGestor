@@ -14,10 +14,12 @@ def VistaGastos(db: Database, navegar) -> ft.Container:
     list_col = ft.Column(spacing=0)
 
     def dibujar_lista():
+        """Dibuja la lista de gastos en forma de tabla"""
         gasts = sorted(db.gastos_por_año(year), key=lambda g: g.fecha, reverse=True)
         list_col.controls.clear()
 
         def th(t):
+            """Crea una fila de encabezado de tabla"""
             return ft.Container(
                 content=ft.Text(t, size=11, weight=ft.FontWeight.W_600, color=COLORS["text_muted"])
             )
@@ -77,7 +79,6 @@ def VistaGastos(db: Database, navegar) -> ft.Container:
                             ft.TextButton("Eliminar", on_click=confirmar, style=ft.ButtonStyle(color="red")),
                         ]
                         
-                        # SOLUCIÓN: Agregar al overlay y abrir correctamente
                         e.page.overlay.append(dlg)
                         dlg.open = True
                         e.page.update()
