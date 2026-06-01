@@ -1,7 +1,7 @@
 import flet as ft
-from frontend.styles import COLORS, btn_primario, snack
+from frontend.styles import COLORS, btn_primario, notificacion
 
-def LoginView(db, on_login) -> ft.Container:
+def VistaLogin(db, on_login) -> ft.Container:
     """Crea la primera pantalla que vemos al abrir la aplicación, donde ponemos nuestra contraseña o nos registramos."""
     
     is_register_mode = [False]
@@ -63,45 +63,45 @@ def LoginView(db, on_login) -> ft.Container:
     def validar_accion(e):
         """Comprueba que hayamos rellenado todo bien al darle al botón de entrar o de crear cuenta."""
         if not username.value or not password.value:
-            snack(e.page, "Por favor, rellena todos los campos.", ok=False)
+            notificacion(e.page, "Por favor, rellena todos los campos.", ok=False)
             return
             
         if is_register_mode[0]:
             if not email.value:
-                snack(e.page, "Por favor, introduce un correo electrónico.", ok=False)
+                notificacion(e.page, "Por favor, introduce un correo electrónico.", ok=False)
                 return
             
             valid_domains = ["@gmail.com", "@hotmail.com", "@hotmail.es", "@yahoo.com", ".es", ".com"]
             if not any(d in email.value.lower() for d in valid_domains) or "@" not in email.value:
-                snack(e.page, "Por favor, introduce un correo válido (ej: @gmail.com, @hotmail.com).", ok=False)
+                notificacion(e.page, "Por favor, introduce un correo válido (ej: @gmail.com, @hotmail.com).", ok=False)
                 return
 
             if len(password.value) < 8:
-                snack(e.page, "La contraseña debe tener al menos 8 caracteres.", ok=False)
+                notificacion(e.page, "La contraseña debe tener al menos 8 caracteres.", ok=False)
                 return
             
             if not any(c.isupper() for c in password.value):
-                snack(e.page, "La contraseña debe contener al menos una letra mayúscula.", ok=False)
+                notificacion(e.page, "La contraseña debe contener al menos una letra mayúscula.", ok=False)
                 return
 
             if password.value != password_confirm.value:
-                snack(e.page, "Las contraseñas no coinciden.", ok=False)
+                notificacion(e.page, "Las contraseñas no coinciden.", ok=False)
                 return
                 
-            success = db.add_usuario(username.value, password.value, email.value)
+            success = db.añadir_usuario(username.value, password.value, email.value)
             if success:
-                snack(e.page, "Cuenta creada con éxito. Iniciando sesión...", ok=True)
-                user = db.get_usuario(username.value, password.value)
+                notificacion(e.page, "Cuenta creada con éxito. Iniciando sesión...", ok=True)
+                user = db.get_usser(username.value, password.value)
                 on_login(user_id=user["id"] if user else None)
             else:
-                snack(e.page, "Ese nombre de usuario ya existe.", ok=False)
+                notificacion(e.page, "Ese nombre de usuario ya existe.", ok=False)
         else:
             #LOGIN
-            user = db.get_usuario(username.value, password.value)
+            user = db.get_usser(username.value, password.value)
             if user:
                 on_login(user_id=user["id"])
             else:
-                snack(e.page, "Usuario o contraseña incorrectos", ok=False)
+                notificacion(e.page, "Usuario o contraseña incorrectos", ok=False)
 
     def cambiar_login_registro(e):
         """Cambia la pantalla para que podamos elegir entre entrar a nuestra cuenta o crear una nueva, enseñando o escondiendo los huecos que hagan falta."""
@@ -150,7 +150,7 @@ def LoginView(db, on_login) -> ft.Container:
     )
 
     #TARJETA DE LOGIN
-    card = ft.Container(
+    tarjeta = ft.Container(
         content=ft.Column([
             logo,
             ft.Column([username, email, password, password_confirm], spacing=16),
@@ -182,7 +182,7 @@ def LoginView(db, on_login) -> ft.Container:
     )
 
     return ft.Container(
-        content=card,
+        content=tarjeta,
         expand=True,
         bgcolor=COLORS["bg"],
         alignment=ft.Alignment(0, 0),

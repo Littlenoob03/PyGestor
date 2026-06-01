@@ -2,23 +2,23 @@ import flet as ft
 import os
 import shutil
 from backend.database import Database
-from frontend.styles import COLORS, btn_primario, card, section_header, text_field, responsive, snack
+from frontend.styles import COLORS, btn_primario, tarjeta, cabecera, campo_texto, vista_adaptable, notificacion
 
-def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
+def VistaPerfil(db: Database, navegar, actualizar_barra_lateral) -> ft.Container:
     """Genera la vista del perfil del usuario, permitiendo editar datos personales, foto y ver su suscripción."""
     user_id = db.current_user_id
     if user_id is None:
         return ft.Container(content=ft.Text("Inicia sesión para ver tu perfil."))
 
-    user = db.get_usuario_by_id(user_id)
+    user = db.get_usser_by_id(user_id)
     if not user:
         return ft.Container(content=ft.Text("Usuario no encontrado."))
 
     #REFERENCIAS
-    f_username = text_field("Usuario", "Tu nombre de usuario", value=user.get("username", ""))
-    f_password = text_field("Contraseña", "Tu contraseña", value=user.get("password", ""), password=True)
-    f_email    = text_field("Email", "tu@email.com", value=user.get("email", ""))
-    f_telefono = text_field("Teléfono", "123456789", value=user.get("telefono", ""))
+    f_username = campo_texto("Usuario", "Tu nombre de usuario", value=user.get("username", ""))
+    f_password = campo_texto("Contraseña", "Tu contraseña", value=user.get("password", ""), password=True)
+    f_email    = campo_texto("Email", "tu@email.com", value=user.get("email", ""))
+    f_telefono = campo_texto("Teléfono", "123456789", value=user.get("telefono", ""))
 
     avatar_image = ft.Image(
         src=f"imagenes/{user.get('foto')}" if user.get("foto") else "",
@@ -50,17 +50,17 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
         avatar_image.update()
         avatar_initials.update()
 
-    f_foto = text_field("Nombre de la imagen", "ej: mi_foto.png", value=user.get("foto", ""))
+    f_foto = campo_texto("Nombre de la imagen", "ej: mi_foto.png", value=user.get("foto", ""))
 
     def guardar_foto_manual(e):
         """Guarda la nueva foto que hemos escrito y nos avisa de que se ha cambiado correctamente."""
         foto_name = f_foto.value.strip()
-        db.update_usuario(user_id, foto=foto_name)
+        db.actualizar_usuario(user_id, foto=foto_name)
         cambio_foto_perfil(foto_name)
-        refresh_sidebar()
+        actualizar_barra_lateral()
         dialog.open = False
         e.page.update()
-        snack(e.page, "Foto de perfil actualizada ✅")
+        notificacion(e.page, "Foto de perfil actualizada ✅")
 
     def cerrar_dialog(e):
         """Cierra la ventanita pequeña sin guardar ningún cambio."""
@@ -89,17 +89,17 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
     def guardar(e):
         """Guarda todos los datos personales que hemos escrito (nombre, email, etc.) en la base de datos."""
         try:
-            db.update_usuario(
+            db.actualizar_usuario(
                 user_id,
                 username=f_username.value,
                 password=f_password.value,
                 email=f_email.value,
                 telefono=f_telefono.value
             )
-            refresh_sidebar()
-            snack(e.page, "Datos actualizados correctamente ✅")
+            actualizar_barra_lateral()
+            notificacion(e.page, "Datos actualizados correctamente ✅")
         except Exception as ex:
-            snack(e.page, f"Error al guardar: {ex}", ok=False)
+            notificacion(e.page, f"Error al guardar: {ex}", ok=False)
 
     btn_upload = ft.TextButton(content=ft.Row([ft.Icon(ft.Icons.UPLOAD), ft.Text("Cambiar Foto")]), on_click=foto)
 
@@ -123,7 +123,7 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
         active_color = COLORS["primary"] if is_active else COLORS["text_secondary"]
         bg_color = ft.Colors.with_opacity(0.05, COLORS["primary"]) if is_active else "white"
         
-        return card(
+        return tarjeta(
             ft.Column([
                 ft.Row([
                     ft.Text(title, size=18, weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
@@ -172,7 +172,7 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
         btn_datos.style.color = COLORS["primary"] if active_tab == "datos" else COLORS["text_secondary"]
         btn_planes.style.color = COLORS["primary"] if active_tab == "planes" else COLORS["text_secondary"]
         
-        tab_content.content = ft.Container(card(datos_personales, padding=32, radius=12), padding=ft.Padding.only(top=20)) if active_tab == "datos" else ft.Container(planes, padding=ft.Padding.only(top=20))
+        tab_content.content = ft.Container(tarjeta(datos_personales, padding=32, radius=12), padding=ft.Padding.only(top=20)) if active_tab == "datos" else ft.Container(planes, padding=ft.Padding.only(top=20))
         tab_content.update()
         btn_datos.update()
         btn_planes.update()
@@ -189,7 +189,7 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
     )
 
     tab_content = ft.Container(
-        content=ft.Container(card(datos_personales, padding=32, radius=12), padding=ft.Padding.only(top=20))
+        content=ft.Container(tarjeta(datos_personales, padding=32, radius=12), padding=ft.Padding.only(top=20))
     )
 
     tabs = ft.Column([
@@ -199,9 +199,9 @@ def PerfilView(db: Database, navigate, refresh_sidebar) -> ft.Container:
     ], spacing=0, expand=True)
 
     content = ft.Column([
-        section_header("Mi Perfil", "Gestiona tus datos personales y tu plan de suscripción."),
+        cabecera("Mi Perfil", "Gestiona tus datos personales y tu plan de suscripción."),
         ft.Container(height=20),
         tabs
     ], expand=True)
 
-    return responsive(content)
+    return vista_adaptable(content)

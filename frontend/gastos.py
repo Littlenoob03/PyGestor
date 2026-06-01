@@ -1,19 +1,19 @@
 import flet as ft
 from datetime import datetime
 from backend.database import Database
-from backend.logic import fmt, gastos_por_categoria
+from backend.logic import formatear_moneda, gastos_por_categoria
 from frontend.styles import (
-    COLORS, CAT_LABELS, card, btn_primario, btn_secundario, btn_aviso,
-    section_header, snack, responsive
+    COLORS, CAT_LABELS, tarjeta, btn_primario, btn_secundario, btn_aviso,
+    cabecera, notificacion, vista_adaptable
 )
 
-def GastosView(db: Database, navigate) -> ft.Container:
+def VistaGastos(db: Database, navegar) -> ft.Container:
     """Crea toda la pantalla de Gastos, donde vemos la lista de lo que hemos gastado y el resumen de arriba."""
     year = datetime.now().year
 
     list_col = ft.Column(spacing=0)
 
-    def render_list():
+    def dibujar_lista():
         gasts = sorted(db.gastos_por_año(year), key=lambda g: g.fecha, reverse=True)
         list_col.controls.clear()
 
@@ -50,10 +50,10 @@ def GastosView(db: Database, navigate) -> ft.Container:
 
                 def accion(gid):
                     """Crea los pequeños botones de la derecha de cada gasto (el de editar y el de borrar)."""
-                    def on_edit(e, gid=gid):
-                        navigate("form_gasto", edit_id=gid)
+                    def al_editar(e, gid=gid):
+                        navegar("form_gasto", edit_id=gid)
 
-                    def on_delete(e, gid=gid):
+                    def al_eliminar(e, gid=gid):
                             
                         dlg = ft.AlertDialog(
                             title=ft.Text("¿Eliminar gasto?"),
@@ -61,11 +61,11 @@ def GastosView(db: Database, navigate) -> ft.Container:
                         )
                         
                         def confirmar(ev):
-                            db.delete_gasto(gid)
+                            db.eliminar_gasto(gid)
                             dlg.open = False
                             ev.page.update()
-                            snack(ev.page, "Gasto eliminado")
-                            render_list()
+                            notificacion(ev.page, "Gasto eliminado")
+                            dibujar_lista()
                             ev.page.update()
                             
                         def cancelar(ev):
@@ -84,10 +84,10 @@ def GastosView(db: Database, navigate) -> ft.Container:
 
                     return ft.Row([
                         ft.IconButton(ft.Icons.EDIT_OUTLINED, icon_color=COLORS["primary"],
-                                      tooltip="Editar", on_click=on_edit,
+                                      tooltip="Editar", on_click=al_editar,
                                       icon_size=18, width=32, height=32),
                         ft.IconButton(ft.Icons.DELETE_OUTLINE, icon_color=COLORS["danger"],
-                                      tooltip="Eliminar", on_click=on_delete,
+                                      tooltip="Eliminar", on_click=al_eliminar,
                                       icon_size=18, width=32, height=32),
                     ], spacing=0)
 
@@ -111,7 +111,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
                             col={"xs": 6, "md": 3},
                         ),
                         ft.Container(content=celda(g.fecha, color=COLORS["text_secondary"]), col={"xs": 6, "md": 2}),
-                        ft.Container(content=celda(fmt(g.importe), bold=True), col={"xs": 6, "md": 2}),
+                        ft.Container(content=celda(formatear_moneda(g.importe), bold=True), col={"xs": 6, "md": 2}),
                         ft.Container(content=accion(g.id), col={"xs": 6, "md": 1}),
                     ], vertical_alignment=ft.CrossAxisAlignment.CENTER),
                     bgcolor=bg,
@@ -119,7 +119,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
                 )
                 list_col.controls.append(row)
 
-    render_list()
+    dibujar_lista()
 
     #TARJETAS DE GASTOS POR CATEGORIAS ( ARRIBA DE LA PAGINA )
     por_cat = gastos_por_categoria(db.gastos_por_año(year))
@@ -130,7 +130,7 @@ def GastosView(db: Database, navigate) -> ft.Container:
                     ft.Text(CAT_LABELS.get(k, ("📦","Otros"))[0], size=22),
                     ft.Text(CAT_LABELS.get(k, ("📦","Otros"))[1], size=11,
                             color=COLORS["text_secondary"]),
-                    ft.Text(fmt(v), size=15, weight=ft.FontWeight.BOLD,
+                    ft.Text(formatear_moneda(v), size=15, weight=ft.FontWeight.BOLD,
                             color=COLORS["text_primary"]),
                 ], spacing=4, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                 bgcolor="white",
@@ -148,17 +148,17 @@ def GastosView(db: Database, navigate) -> ft.Container:
 
     def nuevo_gasto(e):
         """Nos lleva a la pantalla para añadir un gasto nuevo."""
-        navigate("form_gasto")
+        navegar("form_gasto")
 
     content = ft.Column([
         ft.Row([
-            section_header("Gastos", "Controla tus gastos personales"),
+            cabecera("Gastos", "Controla tus gastos personales"),
             btn_primario("Nuevo Gasto", on_click=nuevo_gasto, icon=ft.Icons.ADD),
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         ft.Container(height=16),
         cat_cards,
         ft.Container(height=16),
-        card(list_col, padding=0, radius=12),
+        tarjeta(list_col, padding=0, radius=12),
     ], spacing=0, scroll=ft.ScrollMode.AUTO, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
-    return responsive(content)
+    return vista_adaptable(content)

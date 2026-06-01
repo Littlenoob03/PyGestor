@@ -61,7 +61,7 @@ MESES = ["Ene","Feb","Mar","Abr","May","Jun",
 
 # HELPRES
 
-def card(content, padding=20, radius=16, expand=False, width=None) -> ft.Container:
+def tarjeta(content, padding=20, radius=16, expand=False, width=None) -> ft.Container:
     """Crea un recuadro blanco con una pequeña sombra para que parezca que flota en la pantalla."""
     return ft.Container(
         content=content,
@@ -211,7 +211,7 @@ def etiqueta(text: str, kind: str = "default") -> ft.Container:
     )
 
 
-def section_header(title: str, subtitle: str = "") -> ft.Column:
+def cabecera(title: str, subtitle: str = "") -> ft.Column:
     """Crea los títulos grandes que vemos al principio de cada pantalla."""
     children = [
         ft.Text(title, size=24, weight=ft.FontWeight.BOLD,
@@ -227,7 +227,7 @@ def separador() -> ft.Divider:
     return ft.Divider(color=COLORS["border"], height=1)
 
 
-def text_field(label: str, hint: str = "", value: str = "",
+def campo_texto(label: str, hint: str = "", value: str = "",
                keyboard_type=ft.KeyboardType.TEXT,
                on_change=None, password=False, expand=False) -> ft.TextField:
     """Crea los recuadros donde escribimos texto en los formularios (como al añadir un gasto)."""
@@ -246,12 +246,12 @@ def text_field(label: str, hint: str = "", value: str = "",
     )
 
 
-def dropdown(label, options, value=None, on_change=None):
+def desplegable(label, options, value=None, on_change=None):
     """Crea una cajita donde puedes pinchar y se despliega una lista de opciones para elegir."""
     dd = ft.Dropdown(
         label=label,
         value=value,
-        options=[ft.dropdown.Option(key=str(k), text=str(t)) for k, t in options],
+        options=[ft.desplegable.Option(key=str(k), text=str(t)) for k, t in options],
         content_padding=ft.Padding.symmetric(horizontal=16, vertical=4),
         border_radius=ft.BorderRadius.all(12),
         focused_border_color=ft.Colors.BLUE,
@@ -261,7 +261,7 @@ def dropdown(label, options, value=None, on_change=None):
     return dd
 
 
-def snack(page: ft.Page, msg: str, ok: bool = True):
+def notificacion(page: ft.Page, msg: str, ok: bool = True):
     """Muestra un pequeño aviso en la parte de abajo de la pantalla que desaparece solo (en verde si todo ha ido bien, rojo si hay error)."""
     sb = ft.SnackBar(
         content=ft.Text(msg, color="white"),
@@ -273,7 +273,7 @@ def snack(page: ft.Page, msg: str, ok: bool = True):
     page.update()
 
 
-def responsive(content) -> ft.Container:
+def vista_adaptable(content) -> ft.Container:
     """Hace que el contenido de la pantalla se adapte al tamaño de la ventana y añade la barra para bajar si la página es muy larga."""
     return ft.Container(
         content=ft.Column(

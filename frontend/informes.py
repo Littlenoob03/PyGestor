@@ -2,17 +2,17 @@ import flet as ft
 from datetime import datetime
 from backend.database import Database
 from backend.logic import (
-    fmt, gastos_por_categoria,
+    formatear_moneda, gastos_por_categoria,
     calcular_trimestre, ingresos_por_mes, gastos_por_mes
 )
 from frontend.styles import (
-    COLORS, CAT_LABELS, MESES, card, section_header, responsive,
+    COLORS, CAT_LABELS, MESES, tarjeta, cabecera, vista_adaptable,
 )
 from frontend.graficos import (
     grafico_ingresos_gastos, grafico_donut_gastos, grafico_trimestral,
 )
 
-def InformesView(db: Database, navigate) -> ft.Container:
+def VistaInformes(db: Database, navegar) -> ft.Container:
     """Crea la pantalla de Informes donde podemos ver cómo nos va el año con gráficos."""
     year     = datetime.now().year
     ingresos = db.ingresos_por_año(year)
@@ -24,15 +24,15 @@ def InformesView(db: Database, navigate) -> ft.Container:
     beneficio_neto = total_ingresos - total_gastos_v
     tasa_beneficio = (beneficio_neto / total_ingresos * 100) if total_ingresos else 0
 
-    resumen_anual = card(
+    resumen_anual = tarjeta(
         ft.Column([
             ft.Text(f"Resumen Anual {year}", size=15,
                     weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
             ft.Container(height=12),
             ft.ResponsiveRow([
-                ft.Container(content=mini_tarjetas("Total Ingresos",   fmt(total_ingresos), COLORS["stat1"]), col={"xs": 6, "sm": 4, "lg": 2}),
-                ft.Container(content=mini_tarjetas("Total Gastos",     fmt(total_gastos_v), COLORS["danger"]), col={"xs": 6, "sm": 4, "lg": 2}),
-                ft.Container(content=mini_tarjetas("Ahorro Neto",      fmt(beneficio_neto), COLORS["success"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=mini_tarjetas("Total Ingresos",   formatear_moneda(total_ingresos), COLORS["stat1"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=mini_tarjetas("Total Gastos",     formatear_moneda(total_gastos_v), COLORS["danger"]), col={"xs": 6, "sm": 4, "lg": 2}),
+                ft.Container(content=mini_tarjetas("Ahorro Neto",      formatear_moneda(beneficio_neto), COLORS["success"]), col={"xs": 6, "sm": 4, "lg": 2}),
                 ft.Container(content=mini_tarjetas("Margen",           f"{tasa_beneficio:.1f} %", COLORS["stat4"]), col={"xs": 6, "sm": 4, "lg": 2}),
                 ft.Container(content=mini_tarjetas("Nº Ingresos",      str(len(ingresos)),  COLORS["stat1"]), col={"xs": 6, "sm": 4, "lg": 2}),
                 ft.Container(content=mini_tarjetas("Nº Gastos",        str(len(gastos)),    COLORS["stat3"]), col={"xs": 6, "sm": 4, "lg": 2}),
@@ -45,7 +45,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
     gast_mes = gastos_por_mes(gastos)
     cl_b64 = grafico_ingresos_gastos(ing_mes, gast_mes, MESES, width_px=1000, height_px=350)
 
-    mensual_chart = card(
+    mensual_chart = tarjeta(
         ft.Column([
             ft.Text("Ingresos vs Gastos Mensuales", size=15,
                     weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
@@ -61,7 +61,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
     donut_b64 = grafico_donut_gastos(por_cat, CAT_LABELS,
                                     width_px=600, height_px=350)
 
-    gastos_chart = card(
+    gastos_chart = tarjeta(
         ft.Column([
             ft.Text("Gastos por Categoría", size=15,
                     weight=ft.FontWeight.BOLD, color=COLORS["text_primary"]),
@@ -94,8 +94,8 @@ def InformesView(db: Database, navigate) -> ft.Container:
                 ft.Container(
                     content=ft.Row([
                         ft.Text(f"T{t['trimestre']}", weight=ft.FontWeight.BOLD, size=13, color=COLORS["text_primary"], width=50),
-                        ft.Text(fmt(t["base_ingresos"]), size=13, weight=ft.FontWeight.W_600, color=COLORS["stat1"], expand=True, text_align=ft.TextAlign.RIGHT),
-                        ft.Text(fmt(t["base_gastos"]), size=13, weight=ft.FontWeight.W_600, color=COLORS["stat3"], expand=True, text_align=ft.TextAlign.RIGHT),
+                        ft.Text(formatear_moneda(t["base_ingresos"]), size=13, weight=ft.FontWeight.W_600, color=COLORS["stat1"], expand=True, text_align=ft.TextAlign.RIGHT),
+                        ft.Text(formatear_moneda(t["base_gastos"]), size=13, weight=ft.FontWeight.W_600, color=COLORS["stat3"], expand=True, text_align=ft.TextAlign.RIGHT),
                     ]),
                     padding=ft.Padding.symmetric(vertical=10, horizontal=12),
                     border=ft.border.only(bottom=ft.border.BorderSide(1, COLORS["border"])) if t["trimestre"] < 4 else None
@@ -108,7 +108,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
             padding=4
         )
 
-    trimestral_chart = card(
+    trimestral_chart = tarjeta(
         ft.Column([
             ft.Row([
                 ft.Text("Comparativa Trimestral", size=15,
@@ -142,7 +142,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
     )
 
     content = ft.Column([
-        section_header("Informes", f"Análisis y estadísticas · {year}"),
+        cabecera("Informes", f"Análisis y estadísticas · {year}"),
         ft.Container(height=20),
         resumen_anual,
         ft.Container(height=16),
@@ -154,7 +154,7 @@ def InformesView(db: Database, navigate) -> ft.Container:
         trimestral_chart,
     ], spacing=0, scroll=ft.ScrollMode.AUTO, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
-    return responsive(content)
+    return vista_adaptable(content)
 
 
 def mini_tarjetas(label: str, value: str, color: str) -> ft.Container:

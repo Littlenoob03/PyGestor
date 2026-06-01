@@ -1,25 +1,25 @@
 import flet as ft
 from datetime import datetime
 from backend.database import Database
-from backend.logic import fmt
+from backend.logic import formatear_moneda
 from frontend.styles import (
-    COLORS, card, btn_primario, btn_secundario, btn_aviso,
-    etiqueta, section_header, snack, responsive
+    COLORS, tarjeta, btn_primario, btn_secundario, btn_aviso,
+    etiqueta, cabecera, notificacion, vista_adaptable
 )
 
-def IngresosView(db: Database, navigate) -> ft.Container:
+def VistaIngresos(db: Database, navegar) -> ft.Container:
     """Crea la pantalla de Ingresos, con su lista y los botones para ver los cobrados o pendientes."""
     year = datetime.now().year
     filtro_estado = {"val": "all"}
 
     list_col = ft.Column(spacing=0)
 
-    def refresh(page):
-        render_list()
+    def recargar_pantalla(page):
+        dibujar_lista()
         page.update()
 
     #TABLA DE INGRESOS
-    def render_list():
+    def dibujar_lista():
         ings = [i for i in db.ingresos_por_año(year)
                  if filtro_estado["val"] == "all" or i.estado == filtro_estado["val"]]
         ings.sort(key=lambda x: x.fecha, reverse=True)
@@ -59,28 +59,28 @@ def IngresosView(db: Database, navigate) -> ft.Container:
 
                 def accion(iid):
                     """Crea los pequeños botones de la derecha para editar, cobrar o borrar el ingreso."""
-                    def on_edit(e, iid=iid):
-                        navigate("form_ingreso", edit_id=iid)
+                    def al_editar(e, iid=iid):
+                        navegar("form_ingreso", edit_id=iid)
 
-                    def on_toggle(e, iid=iid):
-                        ing = db.get_ingreso(iid)
+                    def al_cambiar_estado(e, iid=iid):
+                        ing = db.obtener_ingreso(iid)
                         new_estado = "cobrado" if ing.estado == "pendiente" else "pendiente"
-                        db.update_ingreso(iid, estado=new_estado)
-                        snack(e.page, f"Marcado como {new_estado}")
-                        refresh(e.page)
+                        db.actualizar_ingreso(iid, estado=new_estado)
+                        notificacion(e.page, f"Marcado como {new_estado}")
+                        recargar_pantalla(e.page)
 
-                    def on_delete(e, iid=iid):
+                    def al_eliminar(e, iid=iid):
                         dlg = ft.AlertDialog(
                             title=ft.Text("¿Eliminar ingreso?"),
                             content=ft.Text("Esta acción no se puede deshacer.")
                         )
                         
                         def confirmar(ev):
-                            db.delete_ingreso(iid)
+                            db.eliminar_ingreso(iid)
                             dlg.open = False
                             ev.page.update()  
-                            snack(ev.page, "Ingreso eliminado")
-                            render_list()     
+                            notificacion(ev.page, "Ingreso eliminado")
+                            dibujar_lista()     
                             ev.page.update()  
                             
                         def cancelar(ev):
@@ -98,13 +98,13 @@ def IngresosView(db: Database, navigate) -> ft.Container:
 
                     return ft.Row([
                         ft.IconButton(ft.Icons.EDIT_OUTLINED, icon_color=COLORS["primary"],
-                                      tooltip="Editar", on_click=on_edit,
+                                      tooltip="Editar", on_click=al_editar,
                                       icon_size=18, width=32, height=32),
                         ft.IconButton(ft.Icons.CHECK_CIRCLE_OUTLINE, icon_color=COLORS["success"],
-                                      tooltip="Cambiar estado", on_click=on_toggle,
+                                      tooltip="Cambiar estado", on_click=al_cambiar_estado,
                                       icon_size=18, width=32, height=32),
                         ft.IconButton(ft.Icons.DELETE_OUTLINE, icon_color=COLORS["danger"],
-                                      tooltip="Eliminar", on_click=on_delete,
+                                      tooltip="Eliminar", on_click=al_eliminar,
                                       icon_size=18, width=32, height=32),
                     ], spacing=0)
 
@@ -121,7 +121,7 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                         ft.Container(content=celda(i.origen, bold=True, color=COLORS["primary"]), col={"xs": 12, "md": 3}),
                         ft.Container(content=celda(i.concepto), col={"xs": 12, "md": 4}),
                         ft.Container(content=celda(i.fecha, color=COLORS["text_secondary"]), col={"xs": 6, "md": 2}),
-                        ft.Container(content=celda(fmt(i.importe), bold=True), col={"xs": 6, "md": 2}),
+                        ft.Container(content=celda(formatear_moneda(i.importe), bold=True), col={"xs": 6, "md": 2}),
                         ft.Container(
                             content=ft.Row([
                                 etiqueta("Cobrado" if i.estado == "cobrado" else "Pendiente",
@@ -136,14 +136,14 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                 )
                 list_col.controls.append(row)
 
-    render_list()
+    dibujar_lista()
 
     #FILTROS DE BUSQUEDA
-    def make_tab(label, val):
+    def crear_pestaña(label, val):
         """Crea los pequeños botones encima de la tabla para filtrar por 'Todos', 'Cobrados' o 'Pendientes'."""
         def on_click(e):
             filtro_estado["val"] = val
-            render_list()
+            dibujar_lista()
             e.page.update()
         return ft.TextButton(label, on_click=on_click,
                              style=ft.ButtonStyle(
@@ -151,24 +151,24 @@ def IngresosView(db: Database, navigate) -> ft.Container:
                              ))
 
     tabs = ft.Row([
-        make_tab("Todos", "all"),
-        make_tab("Cobrados", "cobrado"),
-        make_tab("Pendientes", "pendiente"),
+        crear_pestaña("Todos", "all"),
+        crear_pestaña("Cobrados", "cobrado"),
+        crear_pestaña("Pendientes", "pendiente"),
     ])
 
     def nuevo_ingreso(e):
         """Nos lleva a la pantalla para añadir un ingreso nuevo."""
-        navigate("form_ingreso")
+        navegar("form_ingreso")
 
     content = ft.Column([
         ft.Row([
-            section_header("Ingresos", "Gestiona tus fuentes de ingresos"),
+            cabecera("Ingresos", "Gestiona tus fuentes de ingresos"),
             btn_primario("Nuevo Ingreso", on_click=nuevo_ingreso, icon=ft.Icons.ADD),
         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         ft.Container(height=16),
         tabs,
         ft.Container(height=8),
-        card(list_col, padding=0, radius=12),
+        tarjeta(list_col, padding=0, radius=12),
     ], spacing=0, scroll=ft.ScrollMode.AUTO, horizontal_alignment=ft.CrossAxisAlignment.STRETCH)
 
-    return responsive(content)
+    return vista_adaptable(content)

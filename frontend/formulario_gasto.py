@@ -2,18 +2,18 @@ import flet as ft
 from datetime import date
 from backend.database import Database
 from frontend.styles import (
-    COLORS, card, btn_primario, btn_secundario,
-    section_header, text_field, dropdown, snack, responsive
+    COLORS, tarjeta, btn_primario, btn_secundario,
+    cabecera, campo_texto, desplegable, notificacion, vista_adaptable
 )
 
-def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
+def VistaFormularioGasto(db: Database, navegar, edit_id=None) -> ft.Container:
     """Crea la pantalla donde rellenamos los datos para apuntar un gasto nuevo o modificar uno que ya existe."""
     
     #CAMPOS DE GASTOS
-    g_desc    = text_field("Descripción", "Descripción del gasto")
-    g_fecha   = text_field("Fecha (YYYY-MM-DD)", str(date.today()), value=str(date.today()))
-    g_importe = text_field("Importe", "0.00", keyboard_type=ft.KeyboardType.NUMBER)
-    g_cat     = dropdown("Categoría", [
+    g_desc    = campo_texto("Descripción", "Descripción del gasto")
+    g_fecha   = campo_texto("Fecha (YYYY-MM-DD)", str(date.today()), value=str(date.today()))
+    g_importe = campo_texto("Importe", "0.00", keyboard_type=ft.KeyboardType.NUMBER)
+    g_cat     = desplegable("Categoría", [
         ("oficina","🖊️ Oficina"), ("software","💻 Software"),
         ("marketing","📢 Marketing"), ("transporte","🚗 Transporte"),
         ("formacion","📚 Formación"), ("seguro","🛡️ Seguro"), 
@@ -25,7 +25,7 @@ def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
     is_edit = edit_id is not None
 
     if is_edit:
-        ga = db.get_gasto(edit_id)
+        ga = db.obtener_gasto(edit_id)
         if ga:
             g_desc.value      = ga.descripcion
             g_cat.value       = ga.categoria
@@ -44,19 +44,19 @@ def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
                 importe=float(g_importe.value or 0),
             )
             if is_edit:
-                db.update_gasto(edit_id, **data)
-                snack(page, "Gasto actualizado ✅")
+                db.actualizar_gasto(edit_id, **data)
+                notificacion(page, "Gasto actualizado ✅")
             else:
-                db.add_gasto(**data)
-                snack(page, "Gasto registrado ✅")
+                db.añadir_gasto(**data)
+                notificacion(page, "Gasto registrado ✅")
             
-            navigate("gastos")
+            navegar("gastos")
         except Exception as ex:
-            snack(page, f"Error: {ex}", ok=False)
+            notificacion(page, f"Error: {ex}", ok=False)
 
     def cancelar(e):
         """Cierra esta pantalla y nos devuelve a la lista de gastos sin guardar nada."""
-        navigate("gastos")
+        navegar("gastos")
 
     titulo = "Editar Gasto" if is_edit else "Nuevo Gasto"
     subtitulo = "Modifica los datos del gasto" if is_edit else "Añade un nuevo gasto personal"
@@ -72,13 +72,13 @@ def FormularioGastoView(db: Database, navigate, edit_id=None) -> ft.Container:
     ], spacing=16)
 
     content = ft.Column([
-        section_header(titulo, subtitulo),
+        cabecera(titulo, subtitulo),
         ft.Container(height=20),
-        card(
+        tarjeta(
             form_content,
             padding=32,
             radius=12
         ),
     ], spacing=0, scroll=ft.ScrollMode.AUTO, expand=True)
 
-    return responsive(content)
+    return vista_adaptable(content)

@@ -2,19 +2,19 @@ import flet as ft
 from datetime import datetime
 from backend.database import Database
 from backend.logic import (
-    fmt, calcular_resumen, ingresos_por_mes, gastos_por_mes,
+    formatear_moneda, calcular_resumen, ingresos_por_mes, gastos_por_mes,
     gastos_por_categoria,
 )
 from frontend.styles import (
     COLORS, GRADIENTS, MESES, CAT_LABELS,
-    tarjetas_informativas, card, section_header,
-    separador, etiqueta, responsive,
+    tarjetas_informativas, tarjeta, cabecera,
+    separador, etiqueta, vista_adaptable,
 )
 from frontend.graficos import (
     grafico_mensual_lineas, grafico_donut_gastos,
 )
 
-def DashboardView(db: Database, navigate) -> ft.Container:
+def VistaDashboard(db: Database, navegar) -> ft.Container:
     year     = datetime.now().year
     ingresos = db.ingresos_por_año(year)
     gastos   = db.gastos_por_año(year)
@@ -22,11 +22,11 @@ def DashboardView(db: Database, navigate) -> ft.Container:
 
     #TARJETAS DEL DASHBOARD (INGRESOS, GASTOS Y AHORRO NETO)
     kpi_data = [
-        ("Ingresos Totales",  fmt(res["total_ingresos"]), "Fuentes de ingreso",
+        ("Ingresos Totales",  formatear_moneda(res["total_ingresos"]), "Fuentes de ingreso",
          GRADIENTS[0], ft.Icons.TRENDING_UP),
-        ("Gastos Totales",    fmt(res["total_gastos"]),   "Personales",
+        ("Gastos Totales",    formatear_moneda(res["total_gastos"]),   "Personales",
          GRADIENTS[1], ft.Icons.TRENDING_DOWN),
-        ("Ahorro Neto",       fmt(res["beneficio"]),      "Ingresos – Gastos",
+        ("Ahorro Neto",       formatear_moneda(res["beneficio"]),      "Ingresos – Gastos",
          GRADIENTS[2], ft.Icons.ACCOUNT_BALANCE_WALLET_OUTLINED),
     ]
     kpis = ft.ResponsiveRow([
@@ -41,7 +41,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
     line_b64 = grafico_mensual_lineas(ing_mes, gast_mes, MESES,
                                    width_px=1000, height_px=350)
 
-    grafico = card(
+    grafico = tarjeta(
         ft.Column([
             ft.Row([
                 ft.Text("Evolución Mensual", size=15,
@@ -66,7 +66,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
     donut_b64 = grafico_donut_gastos(por_cat, CAT_LABELS,
                                     width_px=600, height_px=350)
 
-    gastos_chart = card(
+    gastos_chart = tarjeta(
         ft.Column([
             ft.Text("Gastos por Categoría", size=15,
                     weight=ft.FontWeight.BOLD,
@@ -80,7 +80,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
     #ULTIMOS INGRESOS
     ultimas = sorted(db.ingresos, key=lambda i: i.fecha, reverse=True)[:5]
 
-    def ingreso_row(i):
+    def fila_ingreso(i):
         nombre = i.origen if i.origen else "—"
         initials = "".join(w[0] for w in nombre.split()[:2]).upper() if nombre != "—" else "-"
         return ft.Container(
@@ -101,7 +101,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
                             color=COLORS["text_muted"]),
                 ], spacing=2, expand=True),
                 ft.Column([
-                    ft.Text(fmt(i.total), size=13,
+                    ft.Text(formatear_moneda(i.total), size=13,
                             weight=ft.FontWeight.BOLD,
                             color=COLORS["text_primary"]),
                     etiqueta("Cobrado" if i.estado == "cobrado" else "Pendiente",
@@ -112,18 +112,18 @@ def DashboardView(db: Database, navigate) -> ft.Container:
             padding=ft.Padding.symmetric(vertical=10),
         )
 
-    ingresos_list = card(
+    ingresos_list = tarjeta(
         ft.Column([
             ft.Row([
                 ft.Text("Últimos Ingresos", size=15,
                         weight=ft.FontWeight.BOLD,
                         color=COLORS["text_primary"]),
                 ft.TextButton("Ver todos →",
-                              on_click=lambda e: navigate("ingresos")),
+                              on_click=lambda e: navegar("ingresos")),
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Container(height=4),
             ft.Column(
-                controls=[ingreso_row(i) for i in ultimas] if ultimas else
+                controls=[fila_ingreso(i) for i in ultimas] if ultimas else
                 [ft.Text("No hay ingresos aún", size=13,
                          color=COLORS["text_muted"])],
                 spacing=0,
@@ -133,7 +133,7 @@ def DashboardView(db: Database, navigate) -> ft.Container:
     )
 
     content = ft.Column([
-        section_header("Dashboard", f"Resumen general · {year}"),
+        cabecera("Dashboard", f"Resumen general · {year}"),
         ft.Container(height=20),
         kpis,
         ft.Container(height=20),
@@ -145,4 +145,4 @@ def DashboardView(db: Database, navigate) -> ft.Container:
         ingresos_list,
     ], spacing=0, scroll=ft.ScrollMode.AUTO)
 
-    return responsive(content)
+    return vista_adaptable(content)

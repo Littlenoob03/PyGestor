@@ -2,15 +2,15 @@ import flet as ft
 from datetime import date
 from backend.database import Database
 from frontend.styles import (
-    COLORS, card, btn_primario, btn_secundario,
-    section_header, text_field, dropdown, snack, responsive
+    COLORS, tarjeta, btn_primario, btn_secundario,
+    cabecera, campo_texto, desplegable, notificacion, vista_adaptable
 )
 
-def FormularioIngresoView(db: Database, navigate, edit_id=None) -> ft.Container:
+def VistaFormularioIngreso(db: Database, navegar, edit_id=None) -> ft.Container:
     """Crea la pantalla donde rellenamos los datos para apuntar un ingreso nuevo o modificar uno que ya existe."""
     
     #CAMPOS DE INGRESOS
-    f_origen   = dropdown("Fuente / Origen", [
+    f_origen   = desplegable("Fuente / Origen", [
         ("Nómina", "💼 Nómina"),
         ("Bizum", "📱 Bizum"),
         ("Transferencia", "🏦 Transferencia"),
@@ -19,17 +19,17 @@ def FormularioIngresoView(db: Database, navigate, edit_id=None) -> ft.Container:
         ("Devolución", "🔄 Devolución"),
         ("Otros", "📦 Otros"),
     ], value="Nómina")
-    f_concepto = text_field("Concepto", "Descripción del ingreso")
-    f_fecha    = text_field("Fecha (YYYY-MM-DD)", str(date.today()), value=str(date.today()))
-    f_importe  = text_field("Importe", "0.00", keyboard_type=ft.KeyboardType.NUMBER)
-    f_estado   = dropdown("Estado", [("pendiente","Pendiente"),("cobrado","Cobrado")], value="cobrado")
+    f_concepto = campo_texto("Concepto", "Descripción del ingreso")
+    f_fecha    = campo_texto("Fecha (YYYY-MM-DD)", str(date.today()), value=str(date.today()))
+    f_importe  = campo_texto("Importe", "0.00", keyboard_type=ft.KeyboardType.NUMBER)
+    f_estado   = desplegable("Estado", [("pendiente","Pendiente"),("cobrado","Cobrado")], value="cobrado")
 
     is_edit = edit_id is not None
 
     if is_edit:
-        ing = db.get_ingreso(edit_id)
+        ing = db.obtener_ingreso(edit_id)
         if ing:
-            # Check if the existing value is one of our dropdown options, otherwise default to "Otros"
+            # Check if the existing value is one of our desplegable options, otherwise default to "Otros"
             valid_options = ["Nómina", "Bizum", "Transferencia", "Efectivo", "Venta", "Devolución", "Otros"]
             f_origen.value   = ing.origen if ing.origen in valid_options else "Otros"
             f_concepto.value = ing.concepto
@@ -49,19 +49,19 @@ def FormularioIngresoView(db: Database, navigate, edit_id=None) -> ft.Container:
                 estado=f_estado.value,
             )
             if is_edit:
-                db.update_ingreso(edit_id, **data)
-                snack(page, "Ingreso actualizado ✅")
+                db.actualizar_ingreso(edit_id, **data)
+                notificacion(page, "Ingreso actualizado ✅")
             else:
-                db.add_ingreso(**data)
-                snack(page, "Ingreso creado ✅")
+                db.añadir_ingreso(**data)
+                notificacion(page, "Ingreso creado ✅")
             
-            navigate("ingresos")
+            navegar("ingresos")
         except Exception as ex:
-            snack(page, f"Error: {ex}", ok=False)
+            notificacion(page, f"Error: {ex}", ok=False)
 
     def cancelar(e):
         """Cierra esta pantalla y nos devuelve a la lista de ingresos sin guardar nada."""
-        navigate("ingresos")
+        navegar("ingresos")
 
     titulo = "Editar Ingreso" if is_edit else "Nuevo Ingreso"
     subtitulo = "Modifica los datos del ingreso" if is_edit else "Añade una nueva fuente de ingresos"
@@ -78,13 +78,13 @@ def FormularioIngresoView(db: Database, navigate, edit_id=None) -> ft.Container:
     ], spacing=16)
 
     content = ft.Column([
-        section_header(titulo, subtitulo),
+        cabecera(titulo, subtitulo),
         ft.Container(height=20),
-        card(
+        tarjeta(
             form_content,
             padding=32,
             radius=12
         ),
     ], spacing=0, scroll=ft.ScrollMode.AUTO, expand=True)
 
-    return responsive(content)
+    return vista_adaptable(content)

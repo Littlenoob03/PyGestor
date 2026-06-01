@@ -1,7 +1,7 @@
 from typing import List, Dict, Tuple
 from backend.models import Ingreso, Gasto
 
-def fmt(n: float) -> str:
+def formatear_moneda(n: float) -> str:
     """Formatea un número con separadores de miles y decimales estilo europeo."""
     return f"{n:,.2f} €".replace(",", "X").replace(".", ",").replace("X", ".")
 

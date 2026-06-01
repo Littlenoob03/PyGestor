@@ -1,12 +1,12 @@
 import flet as ft
-from frontend.dashboard import DashboardView
-from frontend.ingresos import IngresosView
-from frontend.gastos import GastosView
-from frontend.informes import InformesView
-from frontend.formulario_ingreso import FormularioIngresoView
-from frontend.formulario_gasto import FormularioGastoView
-from frontend.login import LoginView
-from frontend.perfil import PerfilView
+from frontend.dashboard import VistaDashboard
+from frontend.ingresos import VistaIngresos
+from frontend.gastos import VistaGastos
+from frontend.informes import VistaInformes
+from frontend.formulario_ingreso import VistaFormularioIngreso
+from frontend.formulario_gasto import VistaFormularioGasto
+from frontend.login import VistaLogin
+from frontend.perfil import VistaPerfil
 from backend.database import Database
 
 def main(page: ft.Page):
@@ -44,25 +44,25 @@ def main(page: ft.Page):
     current_view = {"name": "dashboard"}
     content_area = ft.Container(expand=True)
 
-    def navigate(view_name: str, **kwargs):
+    def navegar(view_name: str, **kwargs):
         """Se encarga de cambiar la pantalla que estamos viendo, borrando lo anterior y poniendo el nuevo contenido."""
         current_view["name"] = view_name
-        render_view(view_name, **kwargs)
-        update_nav(view_name)
+        cargar_vista(view_name, **kwargs)
+        actualizar_menu(view_name)
         if page.width < 768 and 'sidebar_container' in locals() and sidebar_container.offset.x == 0:
-            toggle_sidebar(None)
+            alternar_barra_lateral(None)
         page.update()
 
-    def render_view(view_name: str, **kwargs):
+    def cargar_vista(view_name: str, **kwargs):
         """Prepara y dibuja la sección de la app que el usuario ha pedido ver."""
         views = {
-            "dashboard": lambda: DashboardView(db, navigate),
-            "ingresos":  lambda: IngresosView(db, navigate),
-            "gastos":    lambda: GastosView(db, navigate),
-            "informes":  lambda: InformesView(db, navigate),
-            "form_ingreso": lambda: FormularioIngresoView(db, navigate, **kwargs),
-            "form_gasto":   lambda: FormularioGastoView(db, navigate, **kwargs),
-            "perfil":       lambda: PerfilView(db, navigate, refresh_sidebar),
+            "dashboard": lambda: VistaDashboard(db, navegar),
+            "ingresos":  lambda: VistaIngresos(db, navegar),
+            "gastos":    lambda: VistaGastos(db, navegar),
+            "informes":  lambda: VistaInformes(db, navegar),
+            "form_ingreso": lambda: VistaFormularioIngreso(db, navegar, **kwargs),
+            "form_gasto":   lambda: VistaFormularioGasto(db, navegar, **kwargs),
+            "perfil":       lambda: VistaPerfil(db, navegar, actualizar_barra_lateral),
         }
         content_area.content = views.get(view_name, views["dashboard"])()
         page.update()
@@ -86,14 +86,14 @@ def main(page: ft.Page):
             ], spacing=12),
             padding=ft.Padding.symmetric(horizontal=16, vertical=13),
             border_radius=12,
-            on_click=lambda e, k=key: navigate(k),
+            on_click=lambda e, k=key: navegar(k),
             ink=True,
             bgcolor=ft.Colors.with_opacity(0, "white"),
         )
         nav_buttons[key] = btn
         return btn
 
-    def update_nav(active: str):
+    def actualizar_menu(active: str):
         """Pinta el botón del menú de otro color para que sepamos en qué pantalla estamos."""
         for key, btn in nav_buttons.items():
             if key == active:
@@ -152,7 +152,7 @@ def main(page: ft.Page):
     sidebar_username = ft.Text("Usuario", size=13, weight=ft.FontWeight.W_500, color="white")
     sidebar_plan = ft.Text("Plan Personal", size=11, color="#A5B4FC")
 
-    def refresh_sidebar():
+    def actualizar_barra_lateral():
         """Actualiza el menú de la izquierda para mostrar nuestra foto y nombre si hemos iniciado sesión."""
         if not db.current_user_id:
             sidebar_initials.value = "?"
@@ -161,7 +161,7 @@ def main(page: ft.Page):
             sidebar_avatar_container.visible = True
             sidebar_image.visible = False
         else:
-            u = db.get_usuario_by_id(db.current_user_id)
+            u = db.get_usser_by_id(db.current_user_id)
             if u:
                 sidebar_username.value = u.get("username", "Usuario")
                 sidebar_plan.value = u.get("plan", "Plan Personal")
@@ -187,7 +187,7 @@ def main(page: ft.Page):
                 icon=ft.Icons.MORE_VERT,
                 icon_color=ft.Colors.with_opacity(0.7, "white"),
                 items=[
-                    ft.PopupMenuItem(content=ft.Text("Mi Perfil"), icon=ft.Icons.PERSON_OUTLINE, on_click=lambda _: navigate("perfil")),
+                    ft.PopupMenuItem(content=ft.Text("Mi Perfil"), icon=ft.Icons.PERSON_OUTLINE, on_click=lambda _: navegar("perfil")),
                     ft.PopupMenuItem(content=ft.Text("Cerrar Sesión"), icon=ft.Icons.LOGOUT, on_click=lambda _: cerrar_sesion()),
                 ]
             ),
@@ -202,7 +202,7 @@ def main(page: ft.Page):
         bgcolor=ft.Colors.with_opacity(0.4, "black"),
         expand=True,
         visible=False,
-        on_click=lambda e: toggle_sidebar(e)
+        on_click=lambda e: alternar_barra_lateral(e)
     )
     
     sidebar_container = ft.Container(
@@ -212,7 +212,7 @@ def main(page: ft.Page):
         animate_offset=ft.Animation(300, "decelerate"),
     )
     
-    def toggle_sidebar(e):
+    def alternar_barra_lateral(e):
         """Abre o cierra el menú de la izquierda cuando estamos en movil."""
         if sidebar_container.offset.x == -1:
             sidebar_container.offset.x = 0
@@ -223,7 +223,7 @@ def main(page: ft.Page):
         page.update()
 
     page.appbar = ft.AppBar(
-        leading=ft.IconButton(ft.Icons.MENU, on_click=toggle_sidebar, icon_color="black"),
+        leading=ft.IconButton(ft.Icons.MENU, on_click=alternar_barra_lateral, icon_color="black"),
         title=ft.Text("PyGestor", color="black", weight=ft.FontWeight.BOLD),
         bgcolor="white",
         visible=False,
@@ -245,7 +245,7 @@ def main(page: ft.Page):
         sidebar_container,
     ], expand=True)
 
-    def page_resize(e):
+    def redimensionar_pagina(e):
         """Detecta si la ventana del programa se hace grande o pequeña y ajusta el menú para que encaje bien."""
         if page.width < 768:
             sidebar_spacer.visible = False
@@ -259,28 +259,28 @@ def main(page: ft.Page):
             overlay_bg.visible = False
         page.update()
 
-    page.on_resize = page_resize
+    page.on_resize = redimensionar_pagina
 
     def iniciar_sesion(user_id: int):
         """Se ejecuta cuando introducimos bien el usuario y contraseña. Carga el menú principal y nos deja entrar."""
         db.current_user_id = user_id
-        refresh_sidebar()
+        actualizar_barra_lateral()
         page.controls.clear()
         page.add(main_layout)
-        navigate("dashboard")
-        page_resize(None)
+        navegar("dashboard")
+        redimensionar_pagina(None)
 
     def cerrar_sesion():
         """Borra nuestra información temporal y nos devuelve a la pantalla para poner la contraseña."""
         db.current_user_id = None
         page.controls.clear()
-        page.add(LoginView(db, iniciar_sesion))
+        page.add(VistaLogin(db, iniciar_sesion))
         page.update()
 
     page.logout = cerrar_sesion
 
     #INICIALIZAR CON LOGIN
-    page.add(LoginView(db, iniciar_sesion))
+    page.add(VistaLogin(db, iniciar_sesion))
 
 
 if __name__ == "__main__":
