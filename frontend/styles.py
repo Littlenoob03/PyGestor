@@ -253,7 +253,7 @@ def desplegable(label, options, value=None, on_change=None):
     dd = ft.Dropdown(
         label=label,
         value=value,
-        options=[ft.desplegable.Option(key=str(k), text=str(t)) for k, t in options],
+        options=[ft.dropdown.Option(key=str(k), text=str(t)) for k, t in options],
         content_padding=ft.Padding.symmetric(horizontal=16, vertical=4),
         border_radius=ft.BorderRadius.all(12),
         focused_border_color=ft.Colors.BLUE,
