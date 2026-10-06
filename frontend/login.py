@@ -40,7 +40,7 @@ def VistaLogin(db, on_login) -> ft.Container:
         text_size=14,
         label_style=ft.TextStyle(color=COLORS["text_secondary"], size=13),
         content_padding=ft.Padding.symmetric(horizontal=16, vertical=12),
-        on_submit=lambda e: handle_action(e),
+        on_submit=lambda e: validar_accion(e),
     )
     
     password_confirm = ft.TextField(
