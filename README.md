@@ -7,6 +7,10 @@
 
 **PyGestor** es una solución de escritorio multiplataforma orientada a la administración y análisis de finanzas personales. Centraliza el registro de flujos de caja (ingresos y gastos), la clasificación por centros de coste y la proyección analítica en tiempo real mediante un cuadro de mando con visualizaciones dinámicas integradas.
 
+<p align="center">
+  <img src="assets/dashboard.png" alt="Vista Principal del Dashboard de PyGestor" width="100%">
+</p>
+
 ---
 
 ## 🚀 Características Principales
