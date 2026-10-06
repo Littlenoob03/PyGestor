@@ -80,7 +80,7 @@ PyGestor/
 ### 1. Clonar el repositorio
 
 ```bash
-git clone [https://github.com/Littlenoob03/PyGestor.git](https://github.com/Littlenoob03/PyGestor.git)
+git clone https://github.com/Littlenoob03/PyGestor.git
 cd PyGestor
 ```
 
