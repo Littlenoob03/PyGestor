@@ -286,3 +286,5 @@ def main(page: ft.Page):
 if __name__ == "__main__":
     # ft.app(target=main, assets_dir="assets") PARA ARRANCAR LA APP EN FORMATO APP EN VEZ DE NAVEGADOR
     ft.app(target=main, assets_dir="assets", view=ft.AppView.WEB_BROWSER)
+
+    
